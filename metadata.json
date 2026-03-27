@@ -1,0 +1,5 @@
+{
+  "name": "Shield Shield",
+  "description": "A secure system for issuing and validating tokenized national identity numbers, allowing users to share selected identity attributes through privacy-controlled profiles.",
+  "requestFramePermissions": []
+}
