@@ -146,37 +146,93 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
     const identitySummary = savedIdentity ? JSON.parse(savedIdentity) : null;
 
     return (
-        <div className="bg-navy-dark p-8 rounded-lg shadow-lg">
-             <CheckCircleIcon className="h-16 w-16 text-green-400 mx-auto mb-4" />
-             <h2 className="text-2xl font-bold mb-2 text-center">Identity Linked On-Chain</h2>
-             <p className="text-center text-gray-300">Your CPF and birth year are now registered in the Shield Shield confidentiality layer powered by Zama fhEVM.</p>
-             {identitySummary && (
-                <div className="mt-6 rounded-xl bg-navy px-5 py-5 text-sm text-gray-300">
-                    <p className="font-semibold text-white">Saved demo record</p>
-                    <div className="mt-4 space-y-2">
-                        <p><span className="text-gray-400">Name:</span> {identitySummary.fullName || 'Not informed'}</p>
-                        <p><span className="text-gray-400">Date of birth:</span> {identitySummary.dob || 'Not informed'}</p>
-                        <p><span className="text-gray-400">CPF:</span> {identitySummary.cpf || 'Not informed'}</p>
-                        <p><span className="text-gray-400">Mode:</span> {identitySummary.mode === 'fhevm' ? 'Live fhEVM' : 'Mock blockchain'}</p>
-                    </div>
-                </div>
-             )}
+      <div className="space-y-6">
+        <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+          <CheckCircleIcon className="h-16 w-16 text-green-400 mx-auto mb-4" />
+          <h2 className="text-3xl font-bold mb-2 text-center">Identity Linked On-Chain</h2>
+          <p className="mx-auto max-w-3xl text-center text-gray-300">
+            Your CPF and birth year are now protected inside the Shield Shield confidentiality layer powered by Zama fhEVM.
+          </p>
         </div>
+        {identitySummary && (
+          <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+            <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">Stored for the demo</p>
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                <div className="rounded-xl bg-navy p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-gray-400">Name</p>
+                  <p className="mt-2 font-semibold text-white">{identitySummary.fullName || 'Not informed'}</p>
+                </div>
+                <div className="rounded-xl bg-navy p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-gray-400">Date of birth</p>
+                  <p className="mt-2 font-semibold text-white">{identitySummary.dob || 'Not informed'}</p>
+                </div>
+                <div className="rounded-xl bg-navy p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-gray-400">CPF</p>
+                  <p className="mt-2 font-semibold text-white">{identitySummary.cpf || 'Not informed'}</p>
+                </div>
+                <div className="rounded-xl bg-navy p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-gray-400">Mode</p>
+                  <p className="mt-2 font-semibold text-white">{identitySummary.mode === 'fhevm' ? 'Live fhEVM' : identitySummary.mode === 'demo' ? 'Demo connection' : 'Mock blockchain'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">What happens next</p>
+              <div className="mt-5 space-y-4 text-sm text-gray-300">
+                <div className="rounded-xl bg-navy p-4">
+                  <p className="font-semibold text-white">1. A token is prepared</p>
+                  <p className="mt-2">The user can now share a temporary token instead of exposing the raw CPF again.</p>
+                </div>
+                <div className="rounded-xl bg-navy p-4">
+                  <p className="font-semibold text-white">2. A verifier requests claims</p>
+                  <p className="mt-2">The merchant asks only for the checks they need, such as age verification or identity validity.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-y-6">
         <div className="mb-4">
             <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
                 User Flow
             </span>
         </div>
-        <h2 className="text-3xl font-bold mb-6 text-teal">Link Your National Identity</h2>
-        <div className="bg-navy-dark p-8 rounded-lg shadow-lg">
+        <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
+            <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">Step 1</p>
+                <h2 className="mt-4 text-4xl font-bold text-white">Link your identity once.</h2>
+                <p className="mt-4 max-w-2xl text-lg text-gray-300">
+                  Shield Shield turns a one-time CPF registration into a confidential identity layer, so the user can share tokens later instead of repeating the raw number everywhere.
+                </p>
+            </div>
+            <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">What this step guarantees</p>
+                <div className="mt-5 space-y-4 text-sm text-gray-300">
+                    <div className="rounded-xl bg-navy p-4">
+                        <p className="font-semibold text-white">Single registration</p>
+                        <p className="mt-2">The user enters identity data only once for the demo flow.</p>
+                    </div>
+                    <div className="rounded-xl bg-navy p-4">
+                        <p className="font-semibold text-white">No raw CPF sharing later</p>
+                        <p className="mt-2">After this step, the experience shifts to temporary tokens and selective checks.</p>
+                    </div>
+                    <div className="rounded-xl bg-navy p-4">
+                        <p className="font-semibold text-white">Live or fallback mode</p>
+                        <p className="mt-2">You can demo the flow with MetaMask or trigger a fee-free fallback when needed.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div className="bg-navy-dark p-8 rounded-2xl shadow-lg">
             <div className="mb-6 rounded-xl bg-navy px-5 py-4 text-sm text-gray-300">
-                <p className="font-semibold text-white">Step 1: confidential identity registration</p>
-                <p className="mt-2">For the hackathon demo we keep this simple: validate the CPF locally, then encrypt and register the identity on-chain through Zama fhEVM.</p>
+                <p className="font-semibold text-white">Confidential identity registration</p>
+                <p className="mt-2">For the hackathon demo we keep this simple: validate the CPF locally, derive the birth year, and register the identity in the confidential blockchain layer powered by Zama fhEVM.</p>
             </div>
             <div className="mb-6 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-5 py-4 text-sm text-yellow-100">
                 <p className="font-semibold text-white">No MetaMask? Use the demo path</p>
@@ -210,9 +266,19 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
                     <label className="block text-gray-300 mb-2" htmlFor="cpf">CPF</label>
                     <input type="text" id="cpf" value={cpf} onChange={e => setCpf(e.target.value)} placeholder="e.g., 123.456.789-00" className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" required />
                 </div>
-                <div className="rounded-xl border border-white/10 bg-navy px-5 py-4 text-sm text-gray-300">
-                    <p className="font-semibold text-white">What happens here</p>
-                    <p className="mt-2">Shield Shield checks the CPF format, derives the birth year, and registers the identity in the blockchain confidentiality layer instead of exposing the raw CPF in plain text.</p>
+                <div className="grid gap-4 md:grid-cols-3">
+                    <div className="rounded-xl border border-white/10 bg-navy px-5 py-4 text-sm text-gray-300">
+                        <p className="font-semibold text-white">Checks locally</p>
+                        <p className="mt-2">The demo only requires 11 digits for the CPF, keeping onboarding fast for the presentation.</p>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-navy px-5 py-4 text-sm text-gray-300">
+                        <p className="font-semibold text-white">Protects on-chain</p>
+                        <p className="mt-2">The app derives the birth year and sends protected data into the Zama-powered confidential flow.</p>
+                    </div>
+                    <div className="rounded-xl border border-white/10 bg-navy px-5 py-4 text-sm text-gray-300">
+                        <p className="font-semibold text-white">Unlocks sharing</p>
+                        <p className="mt-2">Once linked, the next screen prepares a shareable token automatically.</p>
+                    </div>
                 </div>
                 <div>
                     <button type="submit" disabled={isSubmitting} className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all disabled:cursor-not-allowed disabled:opacity-60">

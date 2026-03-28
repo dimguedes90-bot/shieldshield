@@ -3,19 +3,34 @@ import React from 'react';
 const HowItWorks: React.FC = () => {
   return (
     <div className="space-y-8">
-      <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
-            Hackathon Overview
-          </span>
-          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-300">
-            In-app guide
-          </span>
+      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+        <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+              Hackathon Overview
+            </span>
+            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-300">
+              In-app guide
+            </span>
+          </div>
+          <h2 className="mt-5 text-4xl font-bold text-teal">How Shield Shield Works</h2>
+          <p className="mt-4 max-w-3xl text-lg text-gray-300">
+            Shield Shield protects Brazil&apos;s CPF by storing identity data in a confidential on-chain layer powered by Zama fhEVM and sharing temporary tokens instead of the raw identifier.
+          </p>
         </div>
-        <h2 className="mt-5 text-4xl font-bold text-teal">How Shield Shield Works</h2>
-        <p className="mt-4 max-w-3xl text-lg text-gray-300">
-          Shield Shield protects Brazil&apos;s CPF by storing identity data in a confidential on-chain layer powered by Zama fhEVM and sharing temporary tokens instead of the raw identifier.
-        </p>
+        <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">The pitch in one sentence</p>
+          <div className="mt-5 space-y-4 text-sm text-gray-300">
+            <div className="rounded-xl bg-navy p-4">
+              <p className="font-semibold text-white">Problem</p>
+              <p className="mt-2">CPF is overshared and constantly exposed across onboarding, credit checks, and age-restricted purchases.</p>
+            </div>
+            <div className="rounded-xl bg-navy p-4">
+              <p className="font-semibold text-white">Solution</p>
+              <p className="mt-2">Register the identity once, then share a temporary token while verifiers request only the claims they need.</p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -40,7 +55,7 @@ const HowItWorks: React.FC = () => {
             Why Zama
           </span>
           <p className="mt-4 text-gray-300">
-            Zama fhEVM lets the app keep identity logic on-chain while preserving confidentiality, enabling proofs such as “over 18” without exposing raw personal data.
+            Zama fhEVM keeps the identity logic on-chain while preserving confidentiality, enabling proofs such as "over 18" without exposing raw personal data.
           </p>
         </div>
       </div>
@@ -73,7 +88,7 @@ const HowItWorks: React.FC = () => {
               </span>
               <p className="font-semibold text-white">Merchant Demo</p>
             </div>
-            <p className="mt-3 text-sm text-gray-400">This simulates the verifier side: a merchant receives the token, validates it, and proves an attribute such as being over 18.</p>
+            <p className="mt-3 text-sm text-gray-400">This simulates the verifier side: a merchant receives the token, chooses the claims they need, and validates those checks without seeing the raw CPF.</p>
           </div>
           <div className="rounded-xl bg-navy p-5">
             <div className="flex items-center gap-3">
@@ -98,7 +113,7 @@ const HowItWorks: React.FC = () => {
           </span>
         </div>
         <p className="mt-4 text-sm text-gray-400">
-          These labels are intentionally subtle. They help the jury understand which screens belong to the user experience and which one represents the verifier side of the flow.
+          These labels are intentionally subtle. They help the jury understand which screens belong to the user journey and which screen represents the verifier side of the flow.
         </p>
       </div>
     </div>

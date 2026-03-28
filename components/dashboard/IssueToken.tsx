@@ -133,14 +133,44 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
 
     if (lastIssuedToken) {
         return (
-            <div>
+            <div className="space-y-6">
                  <div className="mb-4">
                     <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
                         User Flow
                     </span>
                  </div>
-                 <h2 className="text-3xl font-bold mb-6 text-teal">Your Shareable Token</h2>
-                 <div className="bg-navy-dark p-8 rounded-lg shadow-lg grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                 <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
+                    <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">Step 2</p>
+                        <h2 className="mt-4 text-4xl font-bold text-white">Your token is ready to share.</h2>
+                        <p className="mt-4 max-w-2xl text-lg text-gray-300">
+                            The user no longer needs to expose the CPF. From this point on, Shield Shield shares a temporary token and the verifier requests only the checks they need.
+                        </p>
+                        <div className="mt-6 flex flex-wrap gap-3 text-sm">
+                            <span className="rounded-full bg-green-500/15 px-4 py-2 font-semibold text-green-300">Temporary token</span>
+                            <span className="rounded-full bg-teal/15 px-4 py-2 font-semibold text-teal">Ready for QR or copy</span>
+                            <span className="rounded-full bg-white/10 px-4 py-2 font-semibold text-gray-200">Raw CPF stays hidden</span>
+                        </div>
+                    </div>
+                    <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
+                        <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">What this enables</p>
+                        <div className="mt-5 space-y-4 text-sm text-gray-300">
+                            <div className="rounded-xl bg-navy p-4">
+                                <p className="font-semibold text-white">Live share</p>
+                                <p className="mt-2">The user can present the QR code in person or send the alphanumeric token securely.</p>
+                            </div>
+                            <div className="rounded-xl bg-navy p-4">
+                                <p className="font-semibold text-white">Merchant chooses the checks</p>
+                                <p className="mt-2">The verifier decides whether to ask for age, identity validity, credit signal, or other claims.</p>
+                            </div>
+                            <div className="rounded-xl bg-navy p-4">
+                                <p className="font-semibold text-white">History stays visible</p>
+                                <p className="mt-2">The user can later review who accessed the token and revoke active access if needed.</p>
+                            </div>
+                        </div>
+                    </div>
+                 </div>
+                 <div className="bg-navy-dark p-8 rounded-2xl shadow-lg grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                      <div className="flex flex-col items-center justify-center">
                          <div className="p-4 bg-white rounded-lg">
                              <QRCode value={lastIssuedToken.qrCodeDataUrl} size={256} bgColor="#FFFFFF" fgColor="#1B2A49" />
@@ -148,7 +178,7 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
                          <p className="mt-4 text-gray-400">This is what the user shares instead of the CPF.</p>
                      </div>
                      <div className="space-y-4">
-                        <h3 className="text-xl font-semibold">Ready to Share</h3>
+                        <h3 className="text-2xl font-semibold">Ready to Share</h3>
                         <p className="text-sm text-gray-400">The token was prepared automatically after the identity was linked. Share this token live or send it securely. The verifier can request specific checks without seeing the raw CPF.</p>
                         <div>
                             <label className="text-sm text-gray-400">Alphanumeric Token</label>
@@ -160,7 +190,7 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
                             </div>
                         </div>
                         <div>
-                            <label className="text-sm text-gray-400">How to use it</label>
+                            <label className="text-sm text-gray-400">Suggested use</label>
                             <p className="font-semibold">{lastIssuedToken.merchant_label || 'Share Anywhere'}</p>
                         </div>
                         <div>

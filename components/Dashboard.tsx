@@ -111,6 +111,12 @@ const Dashboard: React.FC<DashboardProps> = ({
     );
   };
 
+  const NavSection = ({ label }: { label: string }) => (
+    <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-500">
+      {label}
+    </p>
+  );
+
   const renderView = () => {
     switch(currentView) {
       case 'guide': return <HowItWorks />;
@@ -129,15 +135,21 @@ const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
       <nav className="w-full md:w-64 bg-navy-dark p-4 flex flex-col flex-shrink-0">
-        <div className="text-center mb-8">
+        <div className="mb-8 rounded-2xl bg-navy px-4 py-5 text-center shadow-lg">
           <h1 className="text-3xl font-bold text-teal">Shield Shield</h1>
+          <p className="mt-2 text-sm text-gray-400">Confidential identity sharing for the hackathon demo.</p>
         </div>
         <div className="flex-grow space-y-2">
+          <NavSection label="Overview" />
           <NavItem icon={InformationCircleIcon} label="How It Works" view="guide" active={currentView === 'guide'} />
+
+          <NavSection label="User Journey" />
           <NavItem icon={UserCircleIcon} label="1. Link Identity" view="identity" active={currentView === 'identity'} />
           <NavItem icon={QrCodeIcon} label="2. Share Token" view="issue" active={currentView === 'issue'} />
-          <NavItem icon={ShieldCheckIcon} label="3. Merchant Demo" view="validate" active={currentView === 'validate'} />
           <NavItem icon={ClockIcon} label="4. Access History" view="history" active={currentView === 'history'} />
+
+          <NavSection label="Verifier View" />
+          <NavItem icon={ShieldCheckIcon} label="3. Merchant Demo" view="validate" active={currentView === 'validate'} />
         </div>
         <div className="space-y-3">
           <BlockchainStatusCard
