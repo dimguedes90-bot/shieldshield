@@ -8,22 +8,72 @@ interface LinkIdentityProps {
     onLink: () => void;
 }
 
+type ValidationMode = 'document' | 'cpf-only';
+type DocumentType = 'cnh' | 'rg';
+
 const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, onLink }) => {
+  const [validationMode, setValidationMode] = useState<ValidationMode>('document');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [dob, setDob] = useState('');
-  const [idNumber, setIdNumber] = useState('');
+  const [cpf, setCpf] = useState('');
+  const [documentType, setDocumentType] = useState<DocumentType>('cnh');
+  const [documentExpiry, setDocumentExpiry] = useState('');
+  const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [validationStatus, setValidationStatus] = useState<{ isValid: boolean; message: string } | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const result = validateIdentityNumber(idNumber);
-    if (result.isValid) {
-      setValidationStatus({ isValid: true, message: 'Identity number is valid and has been linked successfully!' });
+
+    if (validationMode === 'cpf-only') {
+      if (!cpf.trim()) {
+        setValidationStatus({ isValid: false, message: 'Enter a CPF to continue.' });
+        return;
+      }
+
+      setValidationStatus({
+        isValid: true,
+        message: 'CPF linked without documentary verification. This method does not validate the document automatically.',
+      });
       onLink();
-    } else {
-      setValidationStatus({ isValid: false, message: result.error || 'An unknown validation error occurred.' });
+      return;
     }
+
+    const cpfValidation = validateIdentityNumber(cpf);
+    if (!cpfValidation.isValid) {
+      setValidationStatus({ isValid: false, message: cpfValidation.error || 'Invalid CPF.' });
+      return;
+    }
+
+    if (!documentFile) {
+      setValidationStatus({ isValid: false, message: 'Upload a valid CNH or RG file to continue.' });
+      return;
+    }
+
+    if (!documentExpiry) {
+      setValidationStatus({ isValid: false, message: 'Enter the document expiry date.' });
+      return;
+    }
+
+    const expiryDate = new Date(`${documentExpiry}T23:59:59`);
+    if (Number.isNaN(expiryDate.getTime())) {
+      setValidationStatus({ isValid: false, message: 'Enter a valid expiry date.' });
+      return;
+    }
+
+    if (expiryDate.getTime() < Date.now()) {
+      setValidationStatus({
+        isValid: false,
+        message: `The uploaded ${documentType === 'cnh' ? 'CNH' : 'RG'} is expired. Use a valid document.`,
+      });
+      return;
+    }
+
+    setValidationStatus({
+      isValid: true,
+      message: `${documentType === 'cnh' ? 'CNH' : 'RG'} uploaded successfully. CPF and document validity date were accepted.`,
+    });
+    onLink();
   };
 
   if (isLinked) {
@@ -40,6 +90,35 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, onLink }) => {
     <div>
         <h2 className="text-3xl font-bold mb-6 text-teal">Link Your National Identity</h2>
         <div className="bg-navy-dark p-8 rounded-lg shadow-lg">
+            <div className="mb-6">
+                <div className="flex bg-navy rounded-lg p-1">
+                    <button
+                        type="button"
+                        onClick={() => {
+                          setValidationMode('document');
+                          setValidationStatus(null);
+                        }}
+                        className={`w-1/2 rounded-md px-4 py-3 text-sm font-medium transition-colors ${validationMode === 'document' ? 'bg-teal text-navy' : 'text-gray-300'}`}
+                    >
+                        Upload CNH / RG
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => {
+                          setValidationMode('cpf-only');
+                          setValidationStatus(null);
+                        }}
+                        className={`w-1/2 rounded-md px-4 py-3 text-sm font-medium transition-colors ${validationMode === 'cpf-only' ? 'bg-teal text-navy' : 'text-gray-300'}`}
+                    >
+                        CPF only
+                    </button>
+                </div>
+                <p className="mt-3 text-sm text-gray-400">
+                    {validationMode === 'document'
+                      ? 'Upload a valid CNH or RG with CPF and provide the document expiry date for a stronger verification flow.'
+                      : 'Use this faster option to link only the CPF, without documentary verification.'}
+                </p>
+            </div>
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -56,11 +135,46 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, onLink }) => {
                     <input type="date" id="dob" value={dob} onChange={e => setDob(e.target.value)} className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" />
                 </div>
                 <div>
-                    <label className="block text-gray-300 mb-2" htmlFor="idNumber">National Identity Number</label>
-                    <input type="text" id="idNumber" value={idNumber} onChange={e => setIdNumber(e.target.value)} placeholder="e.g., 123.456.789-00" className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" required />
+                    <label className="block text-gray-300 mb-2" htmlFor="cpf">
+                        {validationMode === 'document' ? 'CPF on document' : 'CPF'}
+                    </label>
+                    <input type="text" id="cpf" value={cpf} onChange={e => setCpf(e.target.value)} placeholder="e.g., 123.456.789-00" className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" required />
                 </div>
+                {validationMode === 'document' && (
+                    <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-gray-300 mb-2" htmlFor="documentType">Document Type</label>
+                                <select id="documentType" value={documentType} onChange={e => setDocumentType(e.target.value as DocumentType)} className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal appearance-none">
+                                    <option value="cnh">CNH</option>
+                                    <option value="rg">RG with CPF</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-gray-300 mb-2" htmlFor="documentExpiry">Expiry Date</label>
+                                <input type="date" id="documentExpiry" value={documentExpiry} onChange={e => setDocumentExpiry(e.target.value)} className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" required />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-gray-300 mb-2" htmlFor="documentFile">Upload document</label>
+                            <input
+                                type="file"
+                                id="documentFile"
+                                accept=".pdf,image/*"
+                                onChange={e => setDocumentFile(e.target.files?.[0] || null)}
+                                className="w-full rounded-lg bg-navy-light p-3 text-gray-300 file:mr-4 file:rounded-md file:border-0 file:bg-teal file:px-4 file:py-2 file:font-semibold file:text-navy hover:file:bg-white"
+                                required
+                            />
+                            <p className="mt-2 text-sm text-gray-400">
+                                Accepted formats: PDF, JPG, JPEG or PNG. The current MVP validates the attached file presence, CPF, and expiry date.
+                            </p>
+                        </div>
+                    </>
+                )}
                 <div>
-                    <button type="submit" className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all">Validate and Link</button>
+                    <button type="submit" className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all">
+                        {validationMode === 'document' ? 'Validate Document and Link' : 'Link CPF without Verification'}
+                    </button>
                 </div>
             </form>
             {validationStatus && (

@@ -2,19 +2,33 @@
 <img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
 </div>
 
-# Run and deploy your AI Studio app
+# Shield Shield
 
-This contains everything you need to run your app locally.
+Shield Shield is a React/Vite MVP for privacy-preserving digital identity flows. The app now supports real authentication with Supabase Auth for email/password sign up and login.
 
-View your app in AI Studio: https://ai.studio/apps/drive/1U09gSue342-TQSFejXmoNAkEVk0ywEhY
-
-## Run Locally
+## Run locally
 
 **Prerequisites:**  Node.js
 
-
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
+2. Create a Supabase project.
+3. In Supabase, copy your project URL and anon key.
+4. Set the environment variables in `.env.local`:
+
+   ```env
+   GEMINI_API_KEY=your_gemini_key
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+5. In Supabase Auth settings, make sure your local URL is allowed.
+   Example: `http://localhost:5173`
+6. Run the app:
    `npm run dev`
+
+## Notes
+
+- The login/register screen uses Supabase Auth with email/password.
+- If email confirmation is enabled in Supabase, new users must confirm their email before logging in.
+- `.env.local` is ignored by Git and should not be committed.

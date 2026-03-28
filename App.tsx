@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AuthPage from './components/AuthPage';
 import Dashboard from './components/Dashboard';
 import ChatBot from './components/ChatBot';
 import { Profile, IssuedToken, ValidationLog } from './types';
+import { isSupabaseConfigured, supabase } from './services/supabaseClient';
 
 export type Page = 'auth' | 'dashboard';
 
@@ -82,8 +83,8 @@ const initialTokensData: IssuedToken[] = [
 ];
 
 const App: React.FC = () => {
-  const [page, setPage] = useState<Page>('auth');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
 
   // Centralized State
   const [profiles, setProfiles] = useState<Profile[]>(initialProfilesData);
@@ -91,14 +92,41 @@ const App: React.FC = () => {
   const [validationLogs, setValidationLogs] = useState<ValidationLog[]>([]);
   const [lastIssuedToken, setLastIssuedToken] = useState<IssuedToken | null>(null);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-    setPage('dashboard');
-  };
+  useEffect(() => {
+    if (!isSupabaseConfigured || !supabase) {
+      setIsAuthLoading(false);
+      return;
+    }
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setPage('auth');
+    let isMounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!isMounted) {
+        return;
+      }
+
+      setIsAuthenticated(Boolean(data.session));
+      setIsAuthLoading(false);
+    });
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(Boolean(session));
+      setIsAuthLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    if (!supabase) {
+      setIsAuthenticated(false);
+      return;
+    }
+
+    await supabase.auth.signOut();
   };
 
   const handleUpdateProfile = (updatedProfile: Profile) => {
@@ -123,6 +151,16 @@ const App: React.FC = () => {
   }
 
 
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-navy text-white font-sans">
+        <div className="rounded-lg bg-navy-dark px-6 py-4 text-sm text-gray-300 shadow-lg">
+          Loading secure session...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-navy text-white font-sans">
       {isAuthenticated ? (
@@ -139,7 +177,7 @@ const App: React.FC = () => {
           onClearLastIssuedToken={clearLastIssuedToken}
         />
       ) : (
-        <AuthPage onLogin={handleLogin} />
+        <AuthPage />
       )}
       {isAuthenticated && <ChatBot />}
     </div>

@@ -1,20 +1,81 @@
 
 import React, { useState } from 'react';
+import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
+import { validateStrongPassword } from '../utils/validation';
 
-interface AuthPageProps {
-  onLogin: () => void;
-}
-
-const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
+const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('demo@shield.com');
   const [password, setPassword] = useState('Demo1234');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
+    void handleAuthSubmit(e);
+  };
+
+  const handleAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you would have API calls here.
-    // For this MVP, we just call onLogin directly.
-    onLogin();
+
+    setStatusMessage(null);
+    setErrorMessage(null);
+
+    if (!isSupabaseConfigured || !supabase) {
+      setErrorMessage('Configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local to enable authentication.');
+      return;
+    }
+
+    if (!isLogin && password !== confirmPassword) {
+      setErrorMessage('Passwords do not match.');
+      return;
+    }
+
+    if (!isLogin) {
+      const passwordValidation = validateStrongPassword(password);
+      if (!passwordValidation.isValid) {
+        setErrorMessage(passwordValidation.error || 'Password does not meet the security requirements.');
+        return;
+      }
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      if (isLogin) {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+
+        if (error) {
+          setErrorMessage(error.message);
+          return;
+        }
+
+        setStatusMessage('Login successful. Redirecting...');
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      if (data.session) {
+        setStatusMessage('Account created successfully. Redirecting...');
+      } else {
+        setStatusMessage('Account created. Check your email to confirm your registration before logging in.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -44,6 +105,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
               id="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              disabled={isSubmitting || !isSupabaseConfigured}
               className="w-full p-3 bg-navy-light border border-navy-light rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal"
               required 
             />
@@ -55,9 +117,15 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
               id="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              disabled={isSubmitting || !isSupabaseConfigured}
               className="w-full p-3 bg-navy-light border border-navy-light rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal"
               required 
             />
+            {!isLogin && (
+              <p className="mt-2 text-sm text-gray-400">
+                Use at least 8 characters with uppercase, lowercase, number, and special character.
+              </p>
+            )}
           </div>
           {!isLogin && (
             <div className="mb-6">
@@ -65,13 +133,35 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin }) => {
               <input 
                 type="password" 
                 id="confirm-password" 
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isSubmitting || !isSupabaseConfigured}
                 className="w-full p-3 bg-navy-light border border-navy-light rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-teal"
                 required 
               />
             </div>
           )}
-          <button type="submit" className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all duration-300">
-            {isLogin ? 'Login' : 'Create Account'}
+          {!isSupabaseConfigured && (
+            <div className="mb-4 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-200">
+              Supabase is not configured yet. Add your project URL and anon key to <code>.env.local</code>.
+            </div>
+          )}
+          {errorMessage && (
+            <div className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-200">
+              {errorMessage}
+            </div>
+          )}
+          {statusMessage && (
+            <div className="mb-4 rounded-lg border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-200">
+              {statusMessage}
+            </div>
+          )}
+          <button
+            type="submit"
+            disabled={isSubmitting || !isSupabaseConfigured}
+            className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
           </button>
         </form>
       </div>

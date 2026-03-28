@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShieldCheckIcon, UserCircleIcon, QrCodeIcon, Cog6ToothIcon, ArrowLeftOnRectangleIcon, ClockIcon } from '@heroicons/react/24/outline';
 import LinkIdentity from './dashboard/LinkIdentity';
 import ManageProfiles from './dashboard/ManageProfiles';
@@ -35,8 +35,21 @@ const Dashboard: React.FC<DashboardProps> = ({
     onClearLastIssuedToken 
 }) => {
   const [currentView, setCurrentView] = useState<DashboardView>('issue');
-  // Defaulting to true to make testing token features easier without linking identity on every reload.
-  const [identityLinked, setIdentityLinked] = useState(true);
+  const [identityLinked, setIdentityLinked] = useState(false);
+
+  useEffect(() => {
+    if (!identityLinked) {
+      return;
+    }
+
+    const resetTimer = window.setTimeout(() => {
+      setIdentityLinked(false);
+    }, 30 * 60 * 1000);
+
+    return () => {
+      window.clearTimeout(resetTimer);
+    };
+  }, [identityLinked]);
 
   const NavItem = ({ icon, label, view, active }: { icon: React.ElementType, label: string, view: DashboardView, active: boolean }) => {
     const Icon = icon;
