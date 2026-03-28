@@ -35,7 +35,9 @@ const DEFAULT_STATUS: BlockchainStatus = {
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_SHIELD_IDENTITY_ADDRESS || '';
 const LOCAL_MOCK_KEY = 'shield-shield-fhevm-mock';
+const DEMO_CONNECTION_KEY = 'shield-shield-demo-connection';
 const AGE_PROOF_YEAR = 2026;
+const DEMO_ADDRESS = '0xDEMO00000000000000000000000000000000FHE';
 
 type WalletConnection = {
   provider: ethers.BrowserProvider;
@@ -65,6 +67,21 @@ type IdentityRegistrationInput = {
   cpf: string;
   birthYear: number;
 };
+
+type ActiveActor =
+  | {
+      address: string;
+      mode: 'demo';
+      chainId: number;
+      networkLabel: string;
+    }
+  | {
+      address: string;
+      mode: 'mock' | 'fhevm';
+      chainId: number;
+      networkLabel: string;
+      connection: WalletConnection;
+    };
 
 let fhevmInitPromise: Promise<void> | null = null;
 let fhevmInstancePromise: Promise<ReturnType<typeof createInstance>> | null = null;
@@ -98,6 +115,16 @@ const setMockStore = (store: MockStore) => {
 const sanitizeCpf = (cpf: string) => cpf.replace(/[^\d]/g, '');
 
 const hasWallet = () => typeof window !== 'undefined' && Boolean(window.ethereum);
+const isDemoConnectionEnabled = () => typeof window !== 'undefined' && localStorage.getItem(DEMO_CONNECTION_KEY) === 'true';
+
+const setDemoConnectionEnabled = (enabled: boolean) => {
+  if (enabled) {
+    localStorage.setItem(DEMO_CONNECTION_KEY, 'true');
+    return;
+  }
+
+  localStorage.removeItem(DEMO_CONNECTION_KEY);
+};
 
 const getConnection = async (): Promise<WalletConnection> => {
   if (!window.ethereum) {
@@ -209,7 +236,67 @@ const loadMockStatus = (address: string, chainId: number, networkLabel: string):
   };
 };
 
+const loadDemoStatus = (): BlockchainStatus => {
+  const store = getMockStore();
+  const record = store[DEMO_ADDRESS];
+
+  return {
+    walletConnected: true,
+    walletAddress: DEMO_ADDRESS,
+    chainId: 31337,
+    networkLabel: 'Demo connection (no wallet fees)',
+    contractConfigured: Boolean(CONTRACT_ADDRESS),
+    contractAddress: CONTRACT_ADDRESS || null,
+    mode: 'demo',
+    identityRegisteredOnChain: Boolean(record?.registered),
+    activeOnChainTokens: record?.tokens.filter((token) => token.active && token.expirationBlock > Date.now()).length || 0,
+    lastAgeProofResult: record?.latestAgeProof ?? null,
+  };
+};
+
+const withMockIdentityRecord = (address: string, updater: (record: MockIdentityRecord | undefined, store: MockStore) => void) => {
+  const store = getMockStore();
+  updater(store[address], store);
+  setMockStore(store);
+};
+
+const getActiveActorAddress = async (): Promise<ActiveActor> => {
+  if (isDemoConnectionEnabled()) {
+    return {
+      address: DEMO_ADDRESS,
+      mode: 'demo' as const,
+      chainId: 31337,
+      networkLabel: 'Demo connection (no wallet fees)',
+    };
+  }
+
+  const connection = await getConnection();
+  return {
+    address: connection.address,
+    mode: shouldUseRealFhevm(connection.chainId) ? 'fhevm' as const : 'mock' as const,
+    chainId: connection.chainId,
+    networkLabel: connection.networkLabel,
+    connection,
+  };
+};
+
+export const connectDemoWallet = async (): Promise<BlockchainStatus> => {
+  setDemoConnectionEnabled(true);
+  return loadDemoStatus();
+};
+
+export const disconnectDemoWallet = async (): Promise<BlockchainStatus> => {
+  setDemoConnectionEnabled(false);
+  return hasWallet() ? getBlockchainStatus() : DEFAULT_STATUS;
+};
+
+export const resetDemoBlockchainState = () => {
+  localStorage.removeItem(LOCAL_MOCK_KEY);
+  localStorage.removeItem(DEMO_CONNECTION_KEY);
+};
+
 export const connectWallet = async (): Promise<BlockchainStatus> => {
+  setDemoConnectionEnabled(false);
   const connection = await getConnection();
   if (shouldUseRealFhevm(connection.chainId)) {
     return getBlockchainStatus();
@@ -219,6 +306,10 @@ export const connectWallet = async (): Promise<BlockchainStatus> => {
 };
 
 export const getBlockchainStatus = async (): Promise<BlockchainStatus> => {
+  if (isDemoConnectionEnabled()) {
+    return loadDemoStatus();
+  }
+
   if (!hasWallet()) {
     return DEFAULT_STATUS;
   }
@@ -249,23 +340,23 @@ export const getBlockchainStatus = async (): Promise<BlockchainStatus> => {
 };
 
 export const registerIdentityOnChain = async ({ cpf, birthYear }: IdentityRegistrationInput) => {
-  const connection = await getConnection();
+  const actor = await getActiveActorAddress();
 
-  if (!shouldUseRealFhevm(connection.chainId)) {
-    const store = getMockStore();
-    store[connection.address] = {
-      ...(store[connection.address] || { tokens: [], latestAgeProof: null }),
-      cpf: sanitizeCpf(cpf),
-      birthYear,
-      registered: true,
-    };
-    setMockStore(store);
+  if (actor.mode !== 'fhevm') {
+    withMockIdentityRecord(actor.address, (record, store) => {
+      store[actor.address] = {
+        ...(record || { tokens: [], latestAgeProof: null }),
+        cpf: sanitizeCpf(cpf),
+        birthYear,
+        registered: true,
+      };
+    });
 
-    return { mode: 'mock' as const };
+    return { mode: actor.mode };
   }
 
-  const contract = getContract(connection.signer);
-  const encrypted = await encryptIdentityValues(connection, cpf, birthYear);
+  const contract = getContract(actor.connection.signer);
+  const encrypted = await encryptIdentityValues(actor.connection, cpf, birthYear);
   const tx = await contract.registerIdentity(
     encrypted.encryptedCpf,
     encrypted.inputProof,
@@ -278,11 +369,11 @@ export const registerIdentityOnChain = async ({ cpf, birthYear }: IdentityRegist
 };
 
 export const generateTokenOnChain = async (durationBlocks: number) => {
-  const connection = await getConnection();
+  const actor = await getActiveActorAddress();
 
-  if (!shouldUseRealFhevm(connection.chainId)) {
+  if (actor.mode !== 'fhevm') {
     const store = getMockStore();
-    const record = store[connection.address];
+    const record = store[actor.address];
     if (!record?.registered) {
       throw new Error('Register an identity on-chain before generating tokens.');
     }
@@ -295,10 +386,10 @@ export const generateTokenOnChain = async (durationBlocks: number) => {
     });
     setMockStore(store);
 
-    return { mode: 'mock' as const, tokenId };
+    return { mode: actor.mode, tokenId };
   }
 
-  const contract = getContract(connection.signer);
+  const contract = getContract(actor.connection.signer);
   const tx = await contract.generateToken(durationBlocks);
   const receipt = await tx.wait();
   const iface = new ethers.Interface(SHIELD_IDENTITY_ABI);
@@ -319,21 +410,21 @@ export const generateTokenOnChain = async (durationBlocks: number) => {
 };
 
 export const revokeTokenOnChain = async (tokenId: number) => {
-  const connection = await getConnection();
+  const actor = await getActiveActorAddress();
 
-  if (!shouldUseRealFhevm(connection.chainId)) {
+  if (actor.mode !== 'fhevm') {
     const store = getMockStore();
-    const record = store[connection.address];
+    const record = store[actor.address];
     record?.tokens.forEach((token) => {
       if (token.id === tokenId) {
         token.active = false;
       }
     });
     setMockStore(store);
-    return { mode: 'mock' as const };
+    return { mode: actor.mode };
   }
 
-  const contract = getContract(connection.signer);
+  const contract = getContract(actor.connection.signer);
   const tx = await contract.revokeToken(tokenId);
   await tx.wait();
 
@@ -341,9 +432,9 @@ export const revokeTokenOnChain = async (tokenId: number) => {
 };
 
 export const verifyTokenOnChain = async (tokenId: number) => {
-  const connection = await getConnection();
+  const actor = await getActiveActorAddress();
 
-  if (!shouldUseRealFhevm(connection.chainId)) {
+  if (actor.mode !== 'fhevm') {
     const store = getMockStore();
     for (const [owner, record] of Object.entries(store)) {
       const token = record.tokens.find((entry) => entry.id === tokenId);
@@ -351,25 +442,25 @@ export const verifyTokenOnChain = async (tokenId: number) => {
         return {
           valid: token.active && token.expirationBlock > Date.now(),
           owner,
-          mode: 'mock' as const,
+          mode: actor.mode,
         };
       }
     }
 
-    return { valid: false, owner: ethers.ZeroAddress, mode: 'mock' as const };
+    return { valid: false, owner: ethers.ZeroAddress, mode: actor.mode };
   }
 
-  const contract = getContract(connection.provider);
+  const contract = getContract(actor.connection.provider);
   const [valid, owner] = await contract.verifyToken(tokenId);
   return { valid, owner, mode: 'fhevm' as const };
 };
 
 export const proveOver18OnChain = async (currentYear: number = AGE_PROOF_YEAR) => {
-  const connection = await getConnection();
+  const actor = await getActiveActorAddress();
 
-  if (!shouldUseRealFhevm(connection.chainId)) {
+  if (actor.mode !== 'fhevm') {
     const store = getMockStore();
-    const record = store[connection.address];
+    const record = store[actor.address];
     if (!record?.registered) {
       throw new Error('Register an identity on-chain before proving age.');
     }
@@ -378,14 +469,14 @@ export const proveOver18OnChain = async (currentYear: number = AGE_PROOF_YEAR) =
     record.latestAgeProof = result;
     setMockStore(store);
 
-    return { verified: result, mode: 'mock' as const };
+    return { verified: result, mode: actor.mode };
   }
 
-  const contract = getContract(connection.signer);
+  const contract = getContract(actor.connection.signer);
   const tx = await contract.proveOver18(currentYear);
   await tx.wait();
-  const handle = await contract.getLatestOver18Proof(connection.address);
-  const verified = await userDecryptHandle(connection, handle);
+  const handle = await contract.getLatestOver18Proof(actor.address);
+  const verified = await userDecryptHandle(actor.connection, handle);
 
   return { verified, mode: 'fhevm' as const };
 };

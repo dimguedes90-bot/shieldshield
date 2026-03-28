@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import AuthPage from './components/AuthPage';
 import Dashboard from './components/Dashboard';
-import ChatBot from './components/ChatBot';
+import { resetDemoBlockchainState } from './lib/blockchain';
 import { Profile, IssuedToken, ValidationLog } from './types';
 import { isSupabaseConfigured, supabase } from './services/supabaseClient';
 
 export type Page = 'auth' | 'dashboard';
+const TOKENS_STORAGE_KEY = 'shieldshield.tokens';
+const LAST_TOKEN_STORAGE_KEY = 'shieldshield.lastToken';
+const LOGS_STORAGE_KEY = 'shieldshield.validationLogs';
+const IDENTITY_STORAGE_KEY = 'shieldshield.identity.linked';
+const IDENTITY_SUMMARY_STORAGE_KEY = 'shieldshield.identity.summary';
 
 const initialProfilesData: Profile[] = [
   {
@@ -49,38 +54,120 @@ const initialProfilesData: Profile[] = [
   },
 ];
 
-const initialTokensData: IssuedToken[] = [
+const createInitialTokensData = (): IssuedToken[] => {
+  const now = Date.now();
+
+  return [
     {
-        id: 'tok_1',
-        token_string: 'sst_bWVyY2hhbnQtMTIzOnZlcmlmeToxNzA5ODg3NjAwMDAw',
-        qrCodeDataUrl: 'sst_bWVyY2hhbnQtMTIzOnZlcmlmeToxNzA5ODg3NjAwMDAw',
-        merchant_id: 'merchant-123',
-        scope: 'age-verification',
-        profile_id: 'personal',
-        exp_ts: Date.now() + 120 * 1000,
-        active: true,
+      id: 'tok_seed_serasa',
+      token_string: 'sst_seed_serasa_credit_score',
+      qrCodeDataUrl: 'sst_seed_serasa_credit_score',
+      merchant_id: 'serasa-score',
+      merchant_label: 'Serasa Score Check',
+      scope: 'credit-score-check',
+      use_case: 'Credit score consultation before approving a personal loan.',
+      profile_id: 'personal',
+      exp_ts: now + 1000 * 60 * 60 * 6,
+      active: true,
     },
     {
-        id: 'tok_2',
-        token_string: 'sst_YWJjLWNvcnA6ZW1wbG95bWVudDoxNzA5ODg3NjAwMDAx',
-        qrCodeDataUrl: 'sst_YWJjLWNvcnA6ZW1wbG95bWVudDoxNzA5ODg3NjAwMDAx',
-        merchant_id: 'abc-corp',
-        scope: 'employment',
-        profile_id: 'corporate',
-        exp_ts: Date.now() - 120 * 1000, // expired
-        active: true,
+      id: 'tok_seed_nubank',
+      token_string: 'sst_seed_nubank_onboarding',
+      qrCodeDataUrl: 'sst_seed_nubank_onboarding',
+      merchant_id: 'nubank-onboarding',
+      merchant_label: 'Nubank Account Opening',
+      scope: 'account-opening',
+      use_case: 'Identity and age confirmation during digital account onboarding.',
+      profile_id: 'personal',
+      exp_ts: now + 1000 * 60 * 45,
+      active: true,
     },
     {
-        id: 'tok_3',
-        token_string: 'sst_Z292LXNlcnZpY2U6YWNjZXNzOjE3MDk4ODc2MDAwMDI',
-        qrCodeDataUrl: 'sst_Z292LXNlcnZpY2U6YWNjZXNzOjE3MDk4ODc2MDAwMDI',
-        merchant_id: 'gov-service',
-        scope: 'access',
-        profile_id: 'custom',
-        exp_ts: Date.now() + 3600 * 1000,
-        active: false, // revoked
+      id: 'tok_seed_ifood',
+      token_string: 'sst_seed_ifood_driver',
+      qrCodeDataUrl: 'sst_seed_ifood_driver',
+      merchant_id: 'ifood-rider',
+      merchant_label: 'iFood Rider Registration',
+      scope: 'worker-verification',
+      use_case: 'Employment and identity verification for rider registration.',
+      profile_id: 'corporate',
+      exp_ts: now - 1000 * 60 * 20,
+      active: true,
     },
-];
+    {
+      id: 'tok_seed_vivo',
+      token_string: 'sst_seed_vivo_plan',
+      qrCodeDataUrl: 'sst_seed_vivo_plan',
+      merchant_id: 'vivo-planos',
+      merchant_label: 'Vivo Mobile Plan',
+      scope: 'telecom-risk-check',
+      use_case: 'Risk and identity confirmation for a new mobile plan.',
+      profile_id: 'personal',
+      exp_ts: now + 1000 * 60 * 60 * 2,
+      active: false,
+    },
+  ];
+};
+
+const createInitialValidationLogs = (): ValidationLog[] => {
+  const now = Date.now();
+
+  return [
+    {
+      id: 'log_seed_serasa',
+      token_id: 'tok_seed_serasa',
+      merchant_id: 'serasa-score',
+      merchant_label: 'Serasa Score Check',
+      timestamp: now - 1000 * 60 * 55,
+      result: 'Valid',
+      purpose: 'A lender requested a credit score review before approving financing.',
+    },
+    {
+      id: 'log_seed_nubank',
+      token_id: 'tok_seed_nubank',
+      merchant_id: 'nubank-onboarding',
+      merchant_label: 'Nubank Account Opening',
+      timestamp: now - 1000 * 60 * 25,
+      result: 'Valid',
+      purpose: 'A digital bank verified identity and age during account opening.',
+    },
+    {
+      id: 'log_seed_ifood',
+      token_id: 'tok_seed_ifood',
+      merchant_id: 'ifood-rider',
+      merchant_label: 'iFood Rider Registration',
+      timestamp: now - 1000 * 60 * 15,
+      result: 'Expired',
+      purpose: 'A delivery platform tried to reuse an expired worker verification token.',
+    },
+    {
+      id: 'log_seed_vivo',
+      token_id: 'tok_seed_vivo',
+      merchant_id: 'vivo-planos',
+      merchant_label: 'Vivo Mobile Plan',
+      timestamp: now - 1000 * 60 * 5,
+      result: 'Revoked',
+      purpose: 'A telecom provider attempted to validate access after the user revoked it.',
+    },
+  ];
+};
+
+const resetDemoState = () => {
+  resetDemoBlockchainState();
+  const seededTokens = createInitialTokensData();
+  const seededLogs = createInitialValidationLogs();
+
+  window.localStorage.setItem(TOKENS_STORAGE_KEY, JSON.stringify(seededTokens));
+  window.localStorage.removeItem(LAST_TOKEN_STORAGE_KEY);
+  window.localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(seededLogs));
+  window.localStorage.removeItem(IDENTITY_STORAGE_KEY);
+  window.localStorage.removeItem(IDENTITY_SUMMARY_STORAGE_KEY);
+
+  return {
+    tokens: seededTokens,
+    logs: seededLogs,
+  };
+};
 
 const App: React.FC = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -88,9 +175,54 @@ const App: React.FC = () => {
 
   // Centralized State
   const [profiles, setProfiles] = useState<Profile[]>(initialProfilesData);
-  const [issuedTokens, setIssuedTokens] = useState<IssuedToken[]>(initialTokensData);
-  const [validationLogs, setValidationLogs] = useState<ValidationLog[]>([]);
-  const [lastIssuedToken, setLastIssuedToken] = useState<IssuedToken | null>(null);
+  const [issuedTokens, setIssuedTokens] = useState<IssuedToken[]>(() => {
+    if (typeof window === 'undefined') {
+      return createInitialTokensData();
+    }
+
+    const stored = window.localStorage.getItem(TOKENS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : createInitialTokensData();
+  });
+  const [validationLogs, setValidationLogs] = useState<ValidationLog[]>(() => {
+    if (typeof window === 'undefined') {
+      return createInitialValidationLogs();
+    }
+
+    const stored = window.localStorage.getItem(LOGS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : createInitialValidationLogs();
+  });
+  const [lastIssuedToken, setLastIssuedToken] = useState<IssuedToken | null>(() => {
+    if (typeof window === 'undefined') {
+      return null;
+    }
+
+    const stored = window.localStorage.getItem(LAST_TOKEN_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : null;
+  });
+
+  useEffect(() => {
+    const seeded = resetDemoState();
+    setIssuedTokens(seeded.tokens);
+    setValidationLogs(seeded.logs);
+    setLastIssuedToken(null);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(TOKENS_STORAGE_KEY, JSON.stringify(issuedTokens));
+  }, [issuedTokens]);
+
+  useEffect(() => {
+    window.localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(validationLogs));
+  }, [validationLogs]);
+
+  useEffect(() => {
+    if (!lastIssuedToken) {
+      window.localStorage.removeItem(LAST_TOKEN_STORAGE_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(LAST_TOKEN_STORAGE_KEY, JSON.stringify(lastIssuedToken));
+  }, [lastIssuedToken]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {
@@ -130,6 +262,10 @@ const App: React.FC = () => {
   };
 
   const handleEnterDemo = () => {
+    const seeded = resetDemoState();
+    setIssuedTokens(seeded.tokens);
+    setValidationLogs(seeded.logs);
+    setLastIssuedToken(null);
     setIsAuthenticated(true);
     setIsAuthLoading(false);
   };
@@ -184,7 +320,6 @@ const App: React.FC = () => {
       ) : (
         <AuthPage onEnterDemo={handleEnterDemo} />
       )}
-      {isAuthenticated && <ChatBot />}
     </div>
   );
 };

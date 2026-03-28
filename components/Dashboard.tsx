@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheckIcon, UserCircleIcon, QrCodeIcon, Cog6ToothIcon, ArrowLeftOnRectangleIcon, ClockIcon } from '@heroicons/react/24/outline';
+import { ShieldCheckIcon, UserCircleIcon, QrCodeIcon, ArrowLeftOnRectangleIcon, ClockIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
 import LinkIdentity from './dashboard/LinkIdentity';
-import ManageProfiles from './dashboard/ManageProfiles';
 import IssueToken from './dashboard/IssueToken';
 import MerchantDemo from './dashboard/MerchantDemo';
-import TokenHistory from './dashboard/TokenHistory';
 import BlockchainStatusCard from './dashboard/BlockchainStatusCard';
-import { connectWallet, getBlockchainStatus, proveOver18OnChain } from '../lib/blockchain';
+import TokenHistory from './dashboard/TokenHistory';
+import HowItWorks from './dashboard/HowItWorks';
+import { connectDemoWallet, connectWallet, getBlockchainStatus } from '../lib/blockchain';
 import { BlockchainStatus, Profile, IssuedToken, ValidationLog } from '../types';
 
-type DashboardView = 'identity' | 'profiles' | 'issue' | 'validate' | 'history';
+type DashboardView = 'guide' | 'identity' | 'issue' | 'validate' | 'history';
+const IDENTITY_STORAGE_KEY = 'shieldshield.identity.linked';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -36,8 +37,14 @@ const Dashboard: React.FC<DashboardProps> = ({
     onAddLog,
     onClearLastIssuedToken 
 }) => {
-  const [currentView, setCurrentView] = useState<DashboardView>('issue');
-  const [identityLinked, setIdentityLinked] = useState(false);
+  const [currentView, setCurrentView] = useState<DashboardView>('guide');
+  const [identityLinked, setIdentityLinked] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+
+    return window.localStorage.getItem(IDENTITY_STORAGE_KEY) === 'true';
+  });
   const [blockchainStatus, setBlockchainStatus] = useState<BlockchainStatus>({
     walletConnected: false,
     walletAddress: null,
@@ -58,6 +65,8 @@ const Dashboard: React.FC<DashboardProps> = ({
 
     const resetTimer = window.setTimeout(() => {
       setIdentityLinked(false);
+      window.localStorage.removeItem(IDENTITY_STORAGE_KEY);
+      window.localStorage.removeItem('shieldshield.identity.summary');
     }, 30 * 60 * 1000);
 
     return () => {
@@ -82,13 +91,9 @@ const Dashboard: React.FC<DashboardProps> = ({
     setBlockchainStatus(status);
   };
 
-  const handleProveOver18 = async () => {
-    const result = await proveOver18OnChain(2026);
-    await refreshBlockchainState();
-    setBlockchainStatus((prev) => ({
-      ...prev,
-      lastAgeProofResult: result.verified,
-    }));
+  const handleConnectDemo = async () => {
+    const status = await connectDemoWallet();
+    setBlockchainStatus(status);
   };
 
   const NavItem = ({ icon, label, view, active }: { icon: React.ElementType, label: string, view: DashboardView, active: boolean }) => {
@@ -97,9 +102,6 @@ const Dashboard: React.FC<DashboardProps> = ({
       <button 
         onClick={() => {
             setCurrentView(view);
-            if (view !== 'issue') {
-                onClearLastIssuedToken();
-            }
         }}
         className={`flex items-center w-full text-left px-4 py-3 rounded-lg transition-colors ${active ? 'bg-teal text-navy' : 'text-gray-300 hover:bg-navy-light'}`}
       >
@@ -111,10 +113,14 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const renderView = () => {
     switch(currentView) {
-      case 'identity': return <LinkIdentity isLinked={identityLinked} onLink={() => setIdentityLinked(true)} onBlockchainSync={refreshBlockchainState} />;
-      case 'profiles': return <ManageProfiles profiles={profiles} onUpdateProfile={onUpdateProfile} />;
+      case 'guide': return <HowItWorks />;
+      case 'identity': return <LinkIdentity isLinked={identityLinked} blockchainStatus={blockchainStatus} onConnectDemo={handleConnectDemo} onLink={() => {
+        setIdentityLinked(true);
+        window.localStorage.setItem(IDENTITY_STORAGE_KEY, 'true');
+        setCurrentView('issue');
+      }} onBlockchainSync={refreshBlockchainState} />;
       case 'issue': return <IssueToken isIdentityLinked={identityLinked} onIssueToken={onAddToken} profiles={profiles} lastIssuedToken={lastIssuedToken} onClearLastIssuedToken={onClearLastIssuedToken} blockchainStatus={blockchainStatus} onBlockchainSync={refreshBlockchainState} />;
-      case 'validate': return <MerchantDemo tokens={issuedTokens} profiles={profiles} onAddLog={onAddLog} />;
+      case 'validate': return <MerchantDemo tokens={issuedTokens} profiles={profiles} onAddLog={onAddLog} lastIssuedToken={lastIssuedToken} />;
       case 'history': return <TokenHistory tokens={issuedTokens} logs={validationLogs} onRevoke={onRevokeToken} onBlockchainSync={refreshBlockchainState} />;
       default: return <IssueToken isIdentityLinked={identityLinked} onIssueToken={onAddToken} profiles={profiles} lastIssuedToken={lastIssuedToken} onClearLastIssuedToken={onClearLastIssuedToken} blockchainStatus={blockchainStatus} onBlockchainSync={refreshBlockchainState} />;
     }
@@ -127,18 +133,17 @@ const Dashboard: React.FC<DashboardProps> = ({
           <h1 className="text-3xl font-bold text-teal">Shield Shield</h1>
         </div>
         <div className="flex-grow space-y-2">
-          <NavItem icon={QrCodeIcon} label="Issue Token" view="issue" active={currentView === 'issue'} />
-          <NavItem icon={ShieldCheckIcon} label="Validate Token" view="validate" active={currentView === 'validate'} />
-          <NavItem icon={UserCircleIcon} label="Link Identity" view="identity" active={currentView === 'identity'} />
-          <NavItem icon={Cog6ToothIcon} label="Manage Profiles" view="profiles" active={currentView === 'profiles'} />
-          <NavItem icon={ClockIcon} label="History & Logs" view="history" active={currentView === 'history'} />
+          <NavItem icon={InformationCircleIcon} label="How It Works" view="guide" active={currentView === 'guide'} />
+          <NavItem icon={UserCircleIcon} label="1. Link Identity" view="identity" active={currentView === 'identity'} />
+          <NavItem icon={QrCodeIcon} label="2. Share Token" view="issue" active={currentView === 'issue'} />
+          <NavItem icon={ShieldCheckIcon} label="3. Merchant Demo" view="validate" active={currentView === 'validate'} />
+          <NavItem icon={ClockIcon} label="4. Access History" view="history" active={currentView === 'history'} />
         </div>
         <div className="space-y-3">
           <BlockchainStatusCard
             status={blockchainStatus}
             onConnectWallet={handleConnectWallet}
             onRefreshStatus={refreshBlockchainState}
-            onProveOver18={handleProveOver18}
           />
           <button 
             onClick={onLogout}

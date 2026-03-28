@@ -17,7 +17,9 @@ export interface IssuedToken {
   token_string: string;
   qrCodeDataUrl: string;
   merchant_id: string;
+  merchant_label?: string;
   scope: string;
+  use_case?: string;
   profile_id: string;
   exp_ts: number;
   active: boolean;
@@ -35,8 +37,10 @@ export interface ValidationLog {
   id: string;
   token_id: string;
   merchant_id: string;
+  merchant_label?: string;
   timestamp: number;
   result: 'Valid' | 'Invalid' | 'Expired' | 'Revoked' | 'Merchant Mismatch';
+  purpose?: string;
   attributes_released?: Record<string, any>;
 }
 
@@ -47,7 +51,7 @@ export interface BlockchainStatus {
   networkLabel: string;
   contractConfigured: boolean;
   contractAddress: string | null;
-  mode: 'fhevm' | 'mock';
+  mode: 'fhevm' | 'mock' | 'demo';
   identityRegisteredOnChain: boolean;
   activeOnChainTokens: number;
   lastAgeProofResult: boolean | null;

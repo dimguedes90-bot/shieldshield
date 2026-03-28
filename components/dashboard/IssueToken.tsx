@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { generateTokenOnChain } from '../../lib/blockchain';
 import { IssuedToken, Profile } from '../../types';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
@@ -19,20 +19,38 @@ const generateTokenString = () => {
     return `sst_${randomPart}`;
 };
 
+const getFriendlyBlockchainError = (error: unknown) => {
+    if (!(error instanceof Error)) {
+        return 'The on-chain token could not be generated, but the local demo token is ready to share.';
+    }
+
+    const message = error.message.toLowerCase();
+
+    if (message.includes('user rejected') || message.includes('action_rejected') || message.includes('denied')) {
+        return 'You cancelled the wallet confirmation. The local demo token is still ready, but it was not mirrored on-chain.';
+    }
+
+    if (message.includes('insufficient funds')) {
+        return 'Your wallet is out of SepoliaETH. The local demo token is ready, but the on-chain version could not be created.';
+    }
+
+    return 'The local demo token is ready, but the on-chain token could not be created right now.';
+};
+
 const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken, profiles, lastIssuedToken, onClearLastIssuedToken, blockchainStatus, onBlockchainSync }) => {
-    const [merchantId, setMerchantId] = useState('merchant-abc');
-    const [scope, setScope] = useState('age-verification');
-    const [profileId, setProfileId] = useState('personal');
     const [copied, setCopied] = useState(false);
     const [blockchainMessage, setBlockchainMessage] = useState<string | null>(null);
     const [blockchainError, setBlockchainError] = useState<string | null>(null);
+    const [isGenerating, setIsGenerating] = useState(false);
+    const defaultMerchantId = 'shared-session';
+    const defaultScope = 'selective-disclosure';
+    const defaultProfileId = profiles.find((profile) => profile.id === 'personal')?.id ?? profiles[0]?.id ?? 'personal';
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
+    const createToken = async () => {
         let onchainTokenId: number | undefined;
         setBlockchainMessage(null);
         setBlockchainError(null);
+        setIsGenerating(true);
 
         if (blockchainStatus.walletConnected) {
             try {
@@ -41,7 +59,7 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
                 setBlockchainMessage(`Token also generated ${result.mode === 'fhevm' ? 'on Zama fhEVM' : 'in mock blockchain mode'}.`);
                 await onBlockchainSync();
             } catch (error) {
-                setBlockchainError(error instanceof Error ? error.message : 'The on-chain token could not be generated.');
+                setBlockchainError(getFriendlyBlockchainError(error));
             }
         } else {
             setBlockchainMessage('Wallet not connected. Generated local demo token only.');
@@ -52,14 +70,32 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
             id: `tok_${Date.now()}`,
             token_string: tokenString,
             qrCodeDataUrl: tokenString,
-            merchant_id: merchantId,
-            scope: scope,
-            profile_id: profileId,
+            merchant_id: defaultMerchantId,
+            merchant_label: 'Share Anywhere',
+            scope: defaultScope,
+            use_case: 'Share this token live or send it securely. The verifier chooses which claims to request.',
+            profile_id: defaultProfileId,
             exp_ts: Date.now() + 120 * 1000,
             active: true,
             onchain_token_id: onchainTokenId,
         };
         onIssueToken(newIssuedToken);
+        setIsGenerating(false);
+    };
+
+    useEffect(() => {
+        if (!isIdentityLinked || lastIssuedToken || isGenerating) {
+            return;
+        }
+
+        void createToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isIdentityLinked, lastIssuedToken, blockchainStatus.walletConnected]);
+
+    const handleRegenerate = async () => {
+        onClearLastIssuedToken();
+        setCopied(false);
+        await createToken();
     };
 
     const handleCopy = () => {
@@ -73,24 +109,47 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
         return (
             <div className="text-center p-8 bg-navy-dark rounded-lg">
                 <h2 className="text-2xl font-bold text-yellow-400 mb-4">Identity Not Linked</h2>
-                <p className="text-gray-300">Please link your national identity number before you can issue tokens.</p>
+                <p className="text-gray-300">Link your identity once and Shield Shield will prepare a shareable token for you automatically.</p>
             </div>
         )
+    }
+
+    if (isGenerating && !lastIssuedToken) {
+        return (
+            <div className="bg-navy-dark p-8 rounded-lg shadow-lg">
+                <div className="mb-4">
+                    <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+                        User Flow
+                    </span>
+                </div>
+                <h2 className="text-3xl font-bold mb-6 text-teal">Preparing Your Shareable Token</h2>
+                <div className="rounded-xl bg-navy px-5 py-4 text-sm text-gray-300">
+                    <p className="font-semibold text-white">Step 2: automatic token creation</p>
+                    <p className="mt-2">Shield Shield is generating a temporary token so the user does not need to handle the raw CPF again. If MetaMask opens, approve the transaction and the token card will appear here.</p>
+                </div>
+            </div>
+        );
     }
 
     if (lastIssuedToken) {
         return (
             <div>
-                 <h2 className="text-3xl font-bold mb-6 text-teal">Token Issued Successfully</h2>
+                 <div className="mb-4">
+                    <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+                        User Flow
+                    </span>
+                 </div>
+                 <h2 className="text-3xl font-bold mb-6 text-teal">Your Shareable Token</h2>
                  <div className="bg-navy-dark p-8 rounded-lg shadow-lg grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                      <div className="flex flex-col items-center justify-center">
                          <div className="p-4 bg-white rounded-lg">
                              <QRCode value={lastIssuedToken.qrCodeDataUrl} size={256} bgColor="#FFFFFF" fgColor="#1B2A49" />
                          </div>
-                         <p className="mt-4 text-gray-400">Scan this QR code to validate</p>
+                         <p className="mt-4 text-gray-400">This is what the user shares instead of the CPF.</p>
                      </div>
                      <div className="space-y-4">
-                        <h3 className="text-xl font-semibold">Token Details</h3>
+                        <h3 className="text-xl font-semibold">Ready to Share</h3>
+                        <p className="text-sm text-gray-400">The token was prepared automatically after the identity was linked. Share this token live or send it securely. The verifier can request specific checks without seeing the raw CPF.</p>
                         <div>
                             <label className="text-sm text-gray-400">Alphanumeric Token</label>
                             <div className="flex items-center mt-1">
@@ -101,14 +160,20 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
                             </div>
                         </div>
                         <div>
-                            <label className="text-sm text-gray-400">Merchant ID</label>
-                            <p className="font-semibold">{lastIssuedToken.merchant_id}</p>
+                            <label className="text-sm text-gray-400">How to use it</label>
+                            <p className="font-semibold">{lastIssuedToken.merchant_label || 'Share Anywhere'}</p>
+                        </div>
+                        <div>
+                            <label className="text-sm text-gray-400">What this token enables</label>
+                            <p className="font-semibold">{lastIssuedToken.use_case || 'Selective disclosure request.'}</p>
                         </div>
                         <div>
                             <label className="text-sm text-gray-400">Expires</label>
                             <p className="font-semibold">{new Date(lastIssuedToken.exp_ts).toLocaleString()}</p>
                         </div>
-                        <button onClick={onClearLastIssuedToken} className="w-full mt-4 bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all">Issue Another Token</button>
+                        {blockchainMessage && <div className="rounded-lg bg-green-500/10 px-4 py-3 text-sm text-green-300">{blockchainMessage}</div>}
+                        {blockchainError && <div className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-300">{blockchainError}</div>}
+                        <button onClick={handleRegenerate} className="w-full mt-4 bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all">Generate New Shareable Token</button>
                      </div>
                  </div>
             </div>
@@ -117,27 +182,18 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
 
     return (
         <div>
-            <h2 className="text-3xl font-bold mb-6 text-teal">Issue a New Identity Token</h2>
+            <div className="mb-4">
+                <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+                    User Flow
+                </span>
+            </div>
+            <h2 className="text-3xl font-bold mb-6 text-teal">Your Shareable Token</h2>
             <div className="bg-navy-dark p-8 rounded-lg shadow-lg">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label className="block text-gray-300 mb-2" htmlFor="merchantId">Merchant ID</label>
-                        <input type="text" id="merchantId" value={merchantId} onChange={e => setMerchantId(e.target.value)} placeholder="e.g., merchant-123" className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" required />
-                    </div>
-                    <div>
-                        <label className="block text-gray-300 mb-2" htmlFor="scope">Scope</label>
-                        <input type="text" id="scope" value={scope} onChange={e => setScope(e.target.value)} placeholder="e.g., age-verification" className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" required />
-                    </div>
-                    <div>
-                        <label className="block text-gray-300 mb-2" htmlFor="profile">Privacy Profile</label>
-                        <select id="profile" value={profileId} onChange={e => setProfileId(e.target.value)} className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal appearance-none">
-                            {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-                        </select>
-                    </div>
-                    {blockchainMessage && <div className="rounded-lg bg-green-500/10 px-4 py-3 text-sm text-green-300">{blockchainMessage}</div>}
-                    {blockchainError && <div className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-300">{blockchainError}</div>}
-                    <button type="submit" className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all">Generate Token & QR Code</button>
-                </form>
+                <div className="mb-6 rounded-xl bg-navy px-5 py-4 text-sm text-gray-300">
+                    <p className="font-semibold text-white">Step 2: share a temporary token</p>
+                    <p className="mt-2">This screen is now automatic. Once the identity is linked, Shield Shield prepares a token for sharing so the user does not have to fill extra business fields.</p>
+                </div>
+                <p className="text-gray-300">If no token is visible yet, Shield Shield is still preparing it. This keeps the user journey focused on a single registration step.</p>
             </div>
         </div>
     );
