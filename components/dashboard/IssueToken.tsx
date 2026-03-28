@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { generateTokenOnChain } from '../../lib/blockchain';
 import { IssuedToken, Profile } from '../../types';
 import { QRCodeSVG as QRCode } from 'qrcode.react';
 import { ClipboardDocumentIcon, CheckIcon } from '@heroicons/react/24/outline';
@@ -9,6 +10,8 @@ interface IssueTokenProps {
     profiles: Profile[];
     lastIssuedToken: IssuedToken | null;
     onClearLastIssuedToken: () => void;
+    blockchainStatus: { walletConnected: boolean };
+    onBlockchainSync: () => Promise<void>;
 }
 
 const generateTokenString = () => {
@@ -16,14 +19,34 @@ const generateTokenString = () => {
     return `sst_${randomPart}`;
 };
 
-const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken, profiles, lastIssuedToken, onClearLastIssuedToken }) => {
+const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken, profiles, lastIssuedToken, onClearLastIssuedToken, blockchainStatus, onBlockchainSync }) => {
     const [merchantId, setMerchantId] = useState('merchant-abc');
     const [scope, setScope] = useState('age-verification');
     const [profileId, setProfileId] = useState('personal');
     const [copied, setCopied] = useState(false);
+    const [blockchainMessage, setBlockchainMessage] = useState<string | null>(null);
+    const [blockchainError, setBlockchainError] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        let onchainTokenId: number | undefined;
+        setBlockchainMessage(null);
+        setBlockchainError(null);
+
+        if (blockchainStatus.walletConnected) {
+            try {
+                const result = await generateTokenOnChain(300);
+                onchainTokenId = result.tokenId ?? undefined;
+                setBlockchainMessage(`Token also generated ${result.mode === 'fhevm' ? 'on Zama fhEVM' : 'in mock blockchain mode'}.`);
+                await onBlockchainSync();
+            } catch (error) {
+                setBlockchainError(error instanceof Error ? error.message : 'The on-chain token could not be generated.');
+            }
+        } else {
+            setBlockchainMessage('Wallet not connected. Generated local demo token only.');
+        }
+
         const tokenString = generateTokenString();
         const newIssuedToken: IssuedToken = {
             id: `tok_${Date.now()}`,
@@ -34,6 +57,7 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
             profile_id: profileId,
             exp_ts: Date.now() + 120 * 1000,
             active: true,
+            onchain_token_id: onchainTokenId,
         };
         onIssueToken(newIssuedToken);
     };
@@ -110,6 +134,8 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
                             {profiles.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                         </select>
                     </div>
+                    {blockchainMessage && <div className="rounded-lg bg-green-500/10 px-4 py-3 text-sm text-green-300">{blockchainMessage}</div>}
+                    {blockchainError && <div className="rounded-lg bg-red-500/10 px-4 py-3 text-sm text-red-300">{blockchainError}</div>}
                     <button type="submit" className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all">Generate Token & QR Code</button>
                 </form>
             </div>

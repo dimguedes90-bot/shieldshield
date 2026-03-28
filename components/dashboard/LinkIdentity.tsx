@@ -1,17 +1,19 @@
 
 import React, { useState } from 'react';
+import { registerIdentityOnChain } from '../../lib/blockchain';
 import { validateIdentityNumber } from '../../utils/validation';
 import { CheckCircleIcon, ExclamationCircleIcon } from '@heroicons/react/24/solid';
 
 interface LinkIdentityProps {
     isLinked: boolean;
     onLink: () => void;
+    onBlockchainSync: () => Promise<void>;
 }
 
 type ValidationMode = 'document' | 'cpf-only';
 type DocumentType = 'cnh' | 'rg';
 
-const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, onLink }) => {
+const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, onLink, onBlockchainSync }) => {
   const [validationMode, setValidationMode] = useState<ValidationMode>('document');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -22,8 +24,19 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, onLink }) => {
   const [documentFile, setDocumentFile] = useState<File | null>(null);
   const [validationStatus, setValidationStatus] = useState<{ isValid: boolean; message: string } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!dob) {
+      setValidationStatus({ isValid: false, message: 'Enter your date of birth to continue.' });
+      return;
+    }
+
+    const birthYear = new Date(`${dob}T00:00:00`).getFullYear();
+    if (Number.isNaN(birthYear)) {
+      setValidationStatus({ isValid: false, message: 'Enter a valid date of birth.' });
+      return;
+    }
 
     if (validationMode === 'cpf-only') {
       if (!cpf.trim()) {
@@ -31,11 +44,20 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, onLink }) => {
         return;
       }
 
-      setValidationStatus({
-        isValid: true,
-        message: 'CPF linked without documentary verification. This method does not validate the document automatically.',
-      });
-      onLink();
+      try {
+        const result = await registerIdentityOnChain({ cpf, birthYear });
+        setValidationStatus({
+          isValid: true,
+          message: `CPF linked without documentary verification. On-chain identity registered in ${result.mode === 'fhevm' ? 'live fhEVM' : 'mock'} mode.`,
+        });
+        onLink();
+        await onBlockchainSync();
+      } catch (error) {
+        setValidationStatus({
+          isValid: false,
+          message: error instanceof Error ? error.message : 'Failed to register the identity on-chain.',
+        });
+      }
       return;
     }
 
@@ -69,11 +91,20 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, onLink }) => {
       return;
     }
 
-    setValidationStatus({
-      isValid: true,
-      message: `${documentType === 'cnh' ? 'CNH' : 'RG'} uploaded successfully. CPF and document validity date were accepted.`,
-    });
-    onLink();
+    try {
+      const result = await registerIdentityOnChain({ cpf, birthYear });
+      setValidationStatus({
+        isValid: true,
+        message: `${documentType === 'cnh' ? 'CNH' : 'RG'} accepted. Identity stored on-chain in ${result.mode === 'fhevm' ? 'live fhEVM' : 'mock'} mode.`,
+      });
+      onLink();
+      await onBlockchainSync();
+    } catch (error) {
+      setValidationStatus({
+        isValid: false,
+        message: error instanceof Error ? error.message : 'Failed to register the identity on-chain.',
+      });
+    }
   };
 
   if (isLinked) {

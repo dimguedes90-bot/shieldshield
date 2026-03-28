@@ -1,18 +1,29 @@
 import React from 'react';
+import { revokeTokenOnChain } from '../../lib/blockchain';
 import { IssuedToken, ValidationLog } from '../../types';
 
 interface TokenHistoryProps {
     tokens: IssuedToken[];
     logs: ValidationLog[];
     onRevoke: (id: string) => void;
+    onBlockchainSync: () => Promise<void>;
 }
 
-const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke }) => {
+const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onBlockchainSync }) => {
     
     const getStatus = (token: IssuedToken) => {
         if (!token.active) return { text: 'Revoked', color: 'text-yellow-400' };
         if (token.exp_ts < Date.now()) return { text: 'Expired', color: 'text-gray-400' };
         return { text: 'Active', color: 'text-green-400' };
+    };
+
+    const handleRevoke = async (token: IssuedToken) => {
+        if (token.onchain_token_id) {
+            await revokeTokenOnChain(token.onchain_token_id);
+            await onBlockchainSync();
+        }
+
+        onRevoke(token.id);
     };
 
     return (
@@ -44,7 +55,9 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke }) =
                                         <td className="p-4">
                                             {status.text === 'Active' && (
                                                 <button 
-                                                    onClick={() => onRevoke(token.id)}
+                                                    onClick={() => {
+                                                        void handleRevoke(token);
+                                                    }}
                                                     className="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors"
                                                 >
                                                     Revoke

@@ -5,7 +5,9 @@ import ManageProfiles from './dashboard/ManageProfiles';
 import IssueToken from './dashboard/IssueToken';
 import MerchantDemo from './dashboard/MerchantDemo';
 import TokenHistory from './dashboard/TokenHistory';
-import { Profile, IssuedToken, ValidationLog } from '../types';
+import BlockchainStatusCard from './dashboard/BlockchainStatusCard';
+import { connectWallet, getBlockchainStatus, proveOver18OnChain } from '../lib/blockchain';
+import { BlockchainStatus, Profile, IssuedToken, ValidationLog } from '../types';
 
 type DashboardView = 'identity' | 'profiles' | 'issue' | 'validate' | 'history';
 
@@ -36,6 +38,18 @@ const Dashboard: React.FC<DashboardProps> = ({
 }) => {
   const [currentView, setCurrentView] = useState<DashboardView>('issue');
   const [identityLinked, setIdentityLinked] = useState(false);
+  const [blockchainStatus, setBlockchainStatus] = useState<BlockchainStatus>({
+    walletConnected: false,
+    walletAddress: null,
+    chainId: null,
+    networkLabel: 'Wallet disconnected',
+    contractConfigured: Boolean(import.meta.env.VITE_SHIELD_IDENTITY_ADDRESS),
+    contractAddress: import.meta.env.VITE_SHIELD_IDENTITY_ADDRESS || null,
+    mode: import.meta.env.VITE_SHIELD_IDENTITY_ADDRESS ? 'fhevm' : 'mock',
+    identityRegisteredOnChain: false,
+    activeOnChainTokens: 0,
+    lastAgeProofResult: null,
+  });
 
   useEffect(() => {
     if (!identityLinked) {
@@ -50,6 +64,32 @@ const Dashboard: React.FC<DashboardProps> = ({
       window.clearTimeout(resetTimer);
     };
   }, [identityLinked]);
+
+  useEffect(() => {
+    void refreshBlockchainState();
+  }, []);
+
+  const refreshBlockchainState = async () => {
+    const status = await getBlockchainStatus();
+    setBlockchainStatus((prev) => ({
+      ...status,
+      lastAgeProofResult: status.lastAgeProofResult ?? prev.lastAgeProofResult,
+    }));
+  };
+
+  const handleConnectWallet = async () => {
+    const status = await connectWallet();
+    setBlockchainStatus(status);
+  };
+
+  const handleProveOver18 = async () => {
+    const result = await proveOver18OnChain(2026);
+    await refreshBlockchainState();
+    setBlockchainStatus((prev) => ({
+      ...prev,
+      lastAgeProofResult: result.verified,
+    }));
+  };
 
   const NavItem = ({ icon, label, view, active }: { icon: React.ElementType, label: string, view: DashboardView, active: boolean }) => {
     const Icon = icon;
@@ -71,12 +111,12 @@ const Dashboard: React.FC<DashboardProps> = ({
 
   const renderView = () => {
     switch(currentView) {
-      case 'identity': return <LinkIdentity isLinked={identityLinked} onLink={() => setIdentityLinked(true)} />;
+      case 'identity': return <LinkIdentity isLinked={identityLinked} onLink={() => setIdentityLinked(true)} onBlockchainSync={refreshBlockchainState} />;
       case 'profiles': return <ManageProfiles profiles={profiles} onUpdateProfile={onUpdateProfile} />;
-      case 'issue': return <IssueToken isIdentityLinked={identityLinked} onIssueToken={onAddToken} profiles={profiles} lastIssuedToken={lastIssuedToken} onClearLastIssuedToken={onClearLastIssuedToken} />;
+      case 'issue': return <IssueToken isIdentityLinked={identityLinked} onIssueToken={onAddToken} profiles={profiles} lastIssuedToken={lastIssuedToken} onClearLastIssuedToken={onClearLastIssuedToken} blockchainStatus={blockchainStatus} onBlockchainSync={refreshBlockchainState} />;
       case 'validate': return <MerchantDemo tokens={issuedTokens} profiles={profiles} onAddLog={onAddLog} />;
-      case 'history': return <TokenHistory tokens={issuedTokens} logs={validationLogs} onRevoke={onRevokeToken} />;
-      default: return <IssueToken isIdentityLinked={identityLinked} onIssueToken={onAddToken} profiles={profiles} lastIssuedToken={lastIssuedToken} onClearLastIssuedToken={onClearLastIssuedToken} />;
+      case 'history': return <TokenHistory tokens={issuedTokens} logs={validationLogs} onRevoke={onRevokeToken} onBlockchainSync={refreshBlockchainState} />;
+      default: return <IssueToken isIdentityLinked={identityLinked} onIssueToken={onAddToken} profiles={profiles} lastIssuedToken={lastIssuedToken} onClearLastIssuedToken={onClearLastIssuedToken} blockchainStatus={blockchainStatus} onBlockchainSync={refreshBlockchainState} />;
     }
   }
 
@@ -93,7 +133,13 @@ const Dashboard: React.FC<DashboardProps> = ({
           <NavItem icon={Cog6ToothIcon} label="Manage Profiles" view="profiles" active={currentView === 'profiles'} />
           <NavItem icon={ClockIcon} label="History & Logs" view="history" active={currentView === 'history'} />
         </div>
-        <div>
+        <div className="space-y-3">
+          <BlockchainStatusCard
+            status={blockchainStatus}
+            onConnectWallet={handleConnectWallet}
+            onRefreshStatus={refreshBlockchainState}
+            onProveOver18={handleProveOver18}
+          />
           <button 
             onClick={onLogout}
             className="flex items-center w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-red-500 hover:text-white transition-colors"

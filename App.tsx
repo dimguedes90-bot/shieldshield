@@ -129,6 +129,11 @@ const App: React.FC = () => {
     await supabase.auth.signOut();
   };
 
+  const handleEnterDemo = () => {
+    setIsAuthenticated(true);
+    setIsAuthLoading(false);
+  };
+
   const handleUpdateProfile = (updatedProfile: Profile) => {
     setProfiles(profiles.map(p => (p.id === updatedProfile.id ? updatedProfile : p)));
   };
@@ -177,7 +182,7 @@ const App: React.FC = () => {
           onClearLastIssuedToken={clearLastIssuedToken}
         />
       ) : (
-        <AuthPage />
+        <AuthPage onEnterDemo={handleEnterDemo} />
       )}
       {isAuthenticated && <ChatBot />}
     </div>

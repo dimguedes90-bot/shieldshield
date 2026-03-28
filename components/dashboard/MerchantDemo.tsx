@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { verifyTokenOnChain } from '../../lib/blockchain';
 import { IssuedToken, Profile, ValidationLog } from '../../types';
 
 interface ValidationResult {
@@ -19,7 +20,7 @@ const MerchantDemo: React.FC<MerchantDemoProps> = ({ tokens, profiles, onAddLog 
     const [merchantId, setMerchantId] = useState('');
     const [result, setResult] = useState<ValidationResult | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
         const foundToken = tokens.find(t => t.token_string === tokenInput);
@@ -30,6 +31,45 @@ const MerchantDemo: React.FC<MerchantDemoProps> = ({ tokens, profiles, onAddLog 
         if (!foundToken) {
             logResult = 'Invalid';
             validationResult = { valid: false, status: 'Invalid', message: 'Token not found or incorrect.' };
+        } else if (foundToken.onchain_token_id) {
+            try {
+                const onchain = await verifyTokenOnChain(foundToken.onchain_token_id);
+                if (!onchain.valid) {
+                    logResult = 'Revoked';
+                    validationResult = { valid: false, status: 'Revoked', message: 'The blockchain layer marked this token as inactive or expired.' };
+                } else if (foundToken.merchant_id !== merchantId) {
+                    logResult = 'Merchant Mismatch';
+                    validationResult = { valid: false, status: 'Merchant Mismatch', message: 'Merchant ID does not match the one this token was issued for.' };
+                } else if (!foundToken.active) {
+                    logResult = 'Revoked';
+                    validationResult = { valid: false, status: 'Revoked', message: 'This token has been revoked by the user.' };
+                } else if (foundToken.exp_ts < Date.now()) {
+                    logResult = 'Expired';
+                    validationResult = { valid: false, status: 'Expired', message: 'This token has expired.' };
+                } else {
+                    logResult = 'Valid';
+                    const profile = profiles.find(p => p.id === foundToken.profile_id);
+                    const attributes: Record<string, any> = {
+                        blockchain_owner: onchain.owner,
+                        blockchain_token_id: foundToken.onchain_token_id,
+                    };
+                    
+                    if (profile) {
+                         if (profile.toggles.identity_number_token) attributes.is_identity_valid = true;
+                         if (profile.toggles.age_over_18) attributes.age_over_18 = true;
+                         if (profile.toggles.personal_email) attributes.personal_email = 'demo-personal@shield.com';
+                         if (profile.toggles.professional_email) attributes.professional_email = 'demo-pro@shield.com';
+                         if (profile.toggles.personal_phone) attributes.personal_phone = '+1-555-0101';
+                         if (profile.toggles.professional_phone) attributes.professional_phone = '+1-555-0102';
+                         if (profile.toggles.linkedin_url) attributes.linkedin_url = 'https://linkedin.com/in/demouser';
+                    }
+                    releasedAttributes = attributes;
+                    validationResult = { valid: true, status: 'Valid', message: 'Token is valid on-chain and active.', attributes };
+                }
+            } catch (error) {
+                logResult = 'Invalid';
+                validationResult = { valid: false, status: 'Invalid', message: error instanceof Error ? error.message : 'On-chain validation failed.' };
+            }
         } else if (foundToken.merchant_id !== merchantId) {
             logResult = 'Merchant Mismatch';
             validationResult = { valid: false, status: 'Merchant Mismatch', message: 'Merchant ID does not match the one this token was issued for.' };

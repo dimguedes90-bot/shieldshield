@@ -21,6 +21,7 @@ export interface IssuedToken {
   profile_id: string;
   exp_ts: number;
   active: boolean;
+  onchain_token_id?: number;
 }
 
 export interface ChatMessage {
@@ -37,4 +38,17 @@ export interface ValidationLog {
   timestamp: number;
   result: 'Valid' | 'Invalid' | 'Expired' | 'Revoked' | 'Merchant Mismatch';
   attributes_released?: Record<string, any>;
+}
+
+export interface BlockchainStatus {
+  walletConnected: boolean;
+  walletAddress: string | null;
+  chainId: number | null;
+  networkLabel: string;
+  contractConfigured: boolean;
+  contractAddress: string | null;
+  mode: 'fhevm' | 'mock';
+  identityRegisteredOnChain: boolean;
+  activeOnChainTokens: number;
+  lastAgeProofResult: boolean | null;
 }

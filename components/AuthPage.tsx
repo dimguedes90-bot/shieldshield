@@ -3,7 +3,11 @@ import React, { useState } from 'react';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient';
 import { validateStrongPassword } from '../utils/validation';
 
-const AuthPage: React.FC = () => {
+interface AuthPageProps {
+  onEnterDemo: () => void;
+}
+
+const AuthPage: React.FC<AuthPageProps> = ({ onEnterDemo }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('demo@shield.com');
   const [password, setPassword] = useState('Demo1234');
@@ -85,6 +89,19 @@ const AuthPage: React.FC = () => {
           <h1 className="text-4xl font-bold text-teal">Shield Shield</h1>
           <p className="text-gray-300 mt-2">Your Privacy-Preserving Digital Identity</p>
         </div>
+
+        <div className="mb-6 rounded-lg border border-teal/25 bg-teal/10 p-4">
+          <p className="text-sm text-gray-200">
+            Demo mode is enabled for fast testing. You can enter any information and go straight into the product flow.
+          </p>
+          <button
+            type="button"
+            onClick={onEnterDemo}
+            className="mt-3 w-full rounded-lg bg-teal px-4 py-3 font-bold text-navy transition-all duration-300 hover:bg-white"
+          >
+            Enter Demo
+          </button>
+        </div>
         
         <div className="mb-6">
           <div className="flex bg-navy-dark rounded-lg p-1">
@@ -156,6 +173,9 @@ const AuthPage: React.FC = () => {
               {statusMessage}
             </div>
           )}
+          <p className="mb-4 text-xs text-gray-500">
+            Auth remains available below, but demo reviewers can skip it using the button above.
+          </p>
           <button
             type="submit"
             disabled={isSubmitting || !isSupabaseConfigured}
