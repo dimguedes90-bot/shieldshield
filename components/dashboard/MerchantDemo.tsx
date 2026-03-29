@@ -62,18 +62,21 @@ const merchantExamples = [
         id: 'serasa-score',
         label: 'Serasa credit review',
         merchantId: 'serasa-score',
+        summary: 'Credit bureau checks identity validity and minimum credit threshold before opening a financing flow.',
         requests: ['identity-valid', 'credit-score-500'] as VerificationRequest[],
     },
     {
         id: 'nubank-onboarding',
         label: 'Bank onboarding',
         merchantId: 'nubank-onboarding',
+        summary: 'Digital account onboarding asks for identity validity, age confirmation, and phone confirmation.',
         requests: ['identity-valid', 'over-18', 'phone-confirmed'] as VerificationRequest[],
     },
     {
         id: 'ifood-rider',
         label: 'Worker onboarding',
         merchantId: 'ifood-rider',
+        summary: 'Platform onboarding checks identity, age, and employment signal for a worker profile.',
         requests: ['identity-valid', 'employment-verified', 'over-18'] as VerificationRequest[],
     },
 ];
@@ -118,6 +121,8 @@ const MerchantDemo: React.FC<MerchantDemoProps> = ({ tokens, profiles, onAddLog,
             prev.includes(check) ? prev.filter((item) => item !== check) : [...prev, check],
         );
     };
+
+    const selectedMerchant = merchantExamples.find((example) => example.merchantId === merchantId) ?? merchantExamples[0];
 
     const applyExample = (merchantIdValue: string, requests: VerificationRequest[]) => {
         setMerchantId(merchantIdValue);
@@ -239,30 +244,46 @@ const MerchantDemo: React.FC<MerchantDemoProps> = ({ tokens, profiles, onAddLog,
     };
     
     return (
-        <div>
+        <div className="space-y-6">
             <div className="mb-4">
                 <span className="rounded-full bg-purple-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-purple-200">
                     Vendor Demo
                 </span>
             </div>
-            <h2 className="text-3xl font-bold mb-6 text-teal">Merchant Demo</h2>
-            <div className="mb-6 rounded-xl bg-navy-dark px-5 py-4 text-sm text-gray-300">
-                <p className="font-semibold text-white">Step 3: merchant-side validation</p>
-                <p className="mt-2">This page is not for the end user. The merchant receives a token, chooses which checks they need, and validates those claims without ever seeing the raw CPF.</p>
+            <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
+                <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-200">Step 3</p>
+                    <h2 className="mt-4 text-4xl font-bold text-white">Merchant requests only what it needs.</h2>
+                    <p className="mt-4 max-w-2xl text-lg text-gray-300">
+                        This screen represents the verifier side. A merchant receives the token, chooses the checks they need, and validates those claims without ever seeing the raw CPF.
+                    </p>
+                </div>
+                <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-purple-200">Current scenario</p>
+                    <div className="mt-5 rounded-xl bg-navy p-5">
+                        <p className="text-lg font-semibold text-white">{selectedMerchant.label}</p>
+                        <p className="mt-3 text-sm text-gray-300">{selectedMerchant.summary}</p>
+                    </div>
+                </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-navy-dark p-8 rounded-lg shadow-lg">
+                <div className="bg-navy-dark p-8 rounded-2xl shadow-lg">
                     <div className="mb-6 rounded-xl bg-navy px-5 py-4 text-sm text-gray-300">
                         <p className="font-semibold text-white">Suggested merchant scenarios</p>
-                        <div className="mt-4 flex flex-wrap gap-3">
+                        <div className="mt-4 grid gap-3 md:grid-cols-3">
                             {merchantExamples.map((example) => (
                                 <button
                                     key={example.id}
                                     type="button"
                                     onClick={() => applyExample(example.merchantId, example.requests)}
-                                    className="rounded-full border border-navy-light px-3 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-gray-200 transition hover:bg-navy-light"
+                                    className={`rounded-xl border px-4 py-3 text-left transition ${
+                                        merchantId === example.merchantId
+                                            ? 'border-teal bg-teal/10'
+                                            : 'border-navy-light bg-navy hover:bg-navy-light'
+                                    }`}
                                 >
-                                    {example.label}
+                                    <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-200">{example.label}</p>
+                                    <p className="mt-2 text-xs text-gray-400">{example.summary}</p>
                                 </button>
                             ))}
                         </div>
@@ -302,19 +323,24 @@ const MerchantDemo: React.FC<MerchantDemoProps> = ({ tokens, profiles, onAddLog,
                                 ))}
                             </div>
                         </div>
-                        <button type="submit" className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all">Validate</button>
+                        <button type="submit" className="w-full bg-teal text-navy font-bold py-3 rounded-lg hover:bg-opacity-90 transition-all">Validate Requested Checks</button>
                     </form>
                 </div>
-                <div className="bg-navy-dark p-8 rounded-lg shadow-lg">
-                    <h3 className="text-xl font-bold text-teal mb-4">Validation Result</h3>
+                <div className="bg-navy-dark p-8 rounded-2xl shadow-lg">
+                    <h3 className="text-2xl font-bold text-teal mb-4">Validation Result</h3>
                     {!result ? (
-                        <p className="text-gray-400">Enter a token, choose the requested checks, and validate to see what the merchant learns without accessing the raw CPF.</p>
+                        <div className="rounded-xl bg-navy px-5 py-5 text-gray-400">
+                            Enter a token, choose the requested checks, and validate to see what the merchant learns without accessing the raw CPF.
+                        </div>
                     ) : (
                         <div className="space-y-4">
                             <div className={`p-4 rounded-lg text-center font-bold ${result.valid ? 'bg-green-500/20 text-green-300' : 'bg-red-500/20 text-red-300'}`}>
                                 {result.status}
                             </div>
-                            <p className="text-gray-300">{result.message}</p>
+                            <div className="rounded-xl bg-navy px-5 py-4">
+                                <p className="text-sm uppercase tracking-[0.18em] text-gray-400">Summary</p>
+                                <p className="mt-3 text-gray-300">{result.message}</p>
+                            </div>
                             {result.passedChecks && result.passedChecks.length > 0 && (
                                 <div className="rounded-xl bg-navy px-5 py-4">
                                     <h4 className="font-semibold text-white">Checks requested by the merchant</h4>
@@ -325,6 +351,11 @@ const MerchantDemo: React.FC<MerchantDemoProps> = ({ tokens, profiles, onAddLog,
                                             </span>
                                         ))}
                                     </div>
+                                </div>
+                            )}
+                            {result.valid && (
+                                <div className="rounded-xl border border-teal/20 bg-teal/10 px-5 py-4 text-sm text-teal">
+                                    The merchant only receives the approved claims above. The raw CPF is never displayed in this flow.
                                 </div>
                             )}
                             {result.releasedItems && result.releasedItems.length > 0 && (

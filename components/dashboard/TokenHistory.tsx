@@ -30,13 +30,34 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
     const revokedTokens = tokens.filter((token) => !token.active).length;
 
     return (
-        <div>
+        <div className="space-y-8">
             <div className="mb-4">
                 <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
                     User Flow
                 </span>
             </div>
-            <h2 className="text-3xl font-bold mb-6 text-teal">Access History</h2>
+            <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
+                <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">Step 4</p>
+                    <h2 className="mt-4 text-4xl font-bold text-white">See who received access and revoke it if needed.</h2>
+                    <p className="mt-4 max-w-2xl text-lg text-gray-300">
+                        This is the user-facing control center. It shows which organizations received a shareable token, what is still active, and where access can be revoked.
+                    </p>
+                </div>
+                <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
+                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">What this proves in the demo</p>
+                    <div className="mt-5 space-y-4 text-sm text-gray-300">
+                        <div className="rounded-xl bg-navy p-4">
+                            <p className="font-semibold text-white">Transparency</p>
+                            <p className="mt-2">The user can see who requested verification and for what purpose.</p>
+                        </div>
+                        <div className="rounded-xl bg-navy p-4">
+                            <p className="font-semibold text-white">Control</p>
+                            <p className="mt-2">Active access can be revoked without exposing the original identity data again.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
             <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="rounded-xl bg-navy-dark p-5 shadow-lg">
                     <p className="text-sm uppercase tracking-[0.2em] text-gray-400">Merchants reached</p>
@@ -52,38 +73,40 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                 </div>
             </div>
 
-            <div className="mb-10 rounded-xl bg-navy-dark p-6 shadow-lg">
+            <div className="mb-10 rounded-2xl bg-navy-dark p-6 shadow-lg">
                 <div className="mb-6">
                     <h3 className="text-2xl font-semibold text-white">Your Shared Access</h3>
-                    <p className="mt-2 text-gray-400">This is the user-facing history view. It shows which merchants received a shareable token and lets the user revoke access when a token is still active.</p>
+                    <p className="mt-2 text-gray-400">Each card below represents one active, expired, or revoked sharing session created from the user identity.</p>
                 </div>
-                <div className="space-y-4">
+                <div className="grid gap-4 lg:grid-cols-2">
                     {tokens.length > 0 ? tokens.map(token => {
                         const status = getStatus(token);
                         return (
                             <div key={token.id} className="rounded-xl border border-navy-light bg-navy px-5 py-5">
-                                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                        <div>
+                                            <p className="text-lg font-semibold text-white">{token.merchant_label || token.merchant_id}</p>
+                                            <p className="mt-1 text-sm text-gray-400">{token.use_case || 'Selective disclosure request.'}</p>
+                                        </div>
+                                        <span className={`rounded-full bg-navy-dark px-3 py-1 text-sm font-semibold ${status.color}`}>{status.text}</span>
+                                    </div>
                                     <div className="space-y-2">
-                                        <p className="text-lg font-semibold text-white">{token.merchant_label || token.merchant_id}</p>
                                         <p className="text-sm text-gray-400">Merchant ID: {token.merchant_id}</p>
                                         <p className="text-sm text-gray-400">Scope: {token.scope}</p>
-                                        <p className="text-sm text-gray-400">Use case: {token.use_case || 'Selective disclosure request.'}</p>
                                         <p className="text-sm text-gray-400">Token: <span className="font-mono text-xs">{token.token_string.slice(0, 22)}...</span></p>
                                         <p className="text-sm text-gray-400">Expires: {new Date(token.exp_ts).toLocaleString()}</p>
                                     </div>
-                                    <div className="flex flex-col items-start gap-3 lg:items-end">
-                                        <span className={`rounded-full bg-navy-dark px-3 py-1 text-sm font-semibold ${status.color}`}>{status.text}</span>
-                                        {status.text === 'Active' && (
-                                            <button
-                                                onClick={() => {
-                                                    void handleRevoke(token);
-                                                }}
-                                                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600"
-                                            >
-                                                Revoke Access
-                                            </button>
-                                        )}
-                                    </div>
+                                    {status.text === 'Active' && (
+                                        <button
+                                            onClick={() => {
+                                                void handleRevoke(token);
+                                            }}
+                                            className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600"
+                                        >
+                                            Revoke Access
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         );
@@ -95,8 +118,12 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                 </div>
             </div>
 
-            <h2 className="text-3xl font-bold mt-12 mb-6 text-teal">Verification Timeline</h2>
-            <div className="bg-navy-dark rounded-lg shadow-lg overflow-hidden">
+            <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
+                <div className="mb-6">
+                    <h3 className="text-2xl font-semibold text-white">Verification Timeline</h3>
+                    <p className="mt-2 text-gray-400">This timeline helps the user understand when organizations tried to validate a token and what kind of check they requested.</p>
+                </div>
+            <div className="bg-navy rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-navy-light">
@@ -129,7 +156,7 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                     </table>
                 </div>
             </div>
-
+            </div>
         </div>
     );
 };
