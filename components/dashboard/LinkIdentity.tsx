@@ -147,9 +147,9 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
 
     return (
       <div className="space-y-6">
-        <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+        <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
           <CheckCircleIcon className="h-16 w-16 text-green-400 mx-auto mb-4" />
-          <h2 className="text-3xl font-bold mb-2 text-center">Identity Linked On-Chain</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-center">Identity Linked On-Chain</h2>
           <p className="mx-auto max-w-3xl text-center text-gray-300">
             Your CPF and birth year are now protected inside the Shield Shield confidentiality layer powered by Zama fhEVM.
           </p>
@@ -204,10 +204,10 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
             </span>
         </div>
         <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr]">
-            <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+            <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">Step 1</p>
-                <h2 className="mt-4 text-4xl font-bold text-white">Link your identity once.</h2>
-                <p className="mt-4 max-w-2xl text-lg text-gray-300">
+                <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-white">Link your identity once.</h2>
+                <p className="mt-4 max-w-2xl text-base sm:text-lg text-gray-300">
                   Shield Shield turns a one-time CPF registration into a confidential identity layer, so the user can share tokens later instead of repeating the raw number everywhere.
                 </p>
             </div>
@@ -229,7 +229,7 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
                 </div>
             </div>
         </div>
-        <div className="bg-navy-dark p-8 rounded-2xl shadow-lg">
+        <div className="bg-navy-dark p-6 sm:p-8 rounded-2xl shadow-lg">
             <div className="mb-6 rounded-xl bg-navy px-5 py-4 text-sm text-gray-300">
                 <p className="font-semibold text-white">Confidential identity registration</p>
                 <p className="mt-2">For the hackathon demo we keep this simple: validate the CPF locally, derive the birth year, and register the identity in the confidential blockchain layer powered by Zama fhEVM.</p>

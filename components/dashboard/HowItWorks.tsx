@@ -4,7 +4,7 @@ const HowItWorks: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+        <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
               Hackathon Overview
@@ -13,9 +13,9 @@ const HowItWorks: React.FC = () => {
               In-app guide
             </span>
           </div>
-          <h2 className="mt-5 text-4xl font-bold text-teal">How Shield Shield Works</h2>
+          <h2 className="mt-5 text-3xl sm:text-4xl font-bold text-teal">How Shield Shield Works</h2>
           <p className="mt-4 max-w-3xl text-lg text-gray-300">
-            Shield Shield protects Brazil&apos;s CPF by storing identity data in a confidential on-chain layer powered by Zama fhEVM and sharing temporary tokens instead of the raw identifier.
+            Shield Shield protects Brazil&apos;s CPF by registering identity once, storing it in a confidential on-chain layer powered by Zama fhEVM, and sharing temporary tokens instead of the raw identifier.
           </p>
         </div>
         <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
@@ -47,7 +47,7 @@ const HowItWorks: React.FC = () => {
             Solution
           </span>
           <p className="mt-4 text-gray-300">
-            Register the identity confidentially, create a temporary shareable token, and let merchants validate attributes without seeing the underlying CPF.
+            Register the identity confidentially, create a temporary shareable token automatically, and let merchants validate attributes without seeing the underlying CPF.
           </p>
         </div>
         <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
@@ -60,8 +60,8 @@ const HowItWorks: React.FC = () => {
         </div>
       </div>
 
-      <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
-        <h3 className="text-2xl font-semibold text-white">Page Map</h3>
+      <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
+        <h3 className="text-2xl font-semibold text-white">Current Demo Flow</h3>
         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
           <div className="rounded-xl bg-navy p-5">
             <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ const HowItWorks: React.FC = () => {
               </span>
               <p className="font-semibold text-white">Link Identity</p>
             </div>
-            <p className="mt-3 text-sm text-gray-400">The user enters data once. Shield Shield validates the CPF format and registers the identity in the confidential blockchain layer.</p>
+            <p className="mt-3 text-sm text-gray-400">The user enters data once. The app can use MetaMask live or a demo fallback connection, then protects the identity in the confidential layer.</p>
           </div>
           <div className="rounded-xl bg-navy p-5">
             <div className="flex items-center gap-3">
@@ -79,7 +79,7 @@ const HowItWorks: React.FC = () => {
               </span>
               <p className="font-semibold text-white">Share Token</p>
             </div>
-            <p className="mt-3 text-sm text-gray-400">After registration, the app prepares a temporary token automatically so the user can share that instead of the CPF.</p>
+            <p className="mt-3 text-sm text-gray-400">After registration, Shield Shield prepares a temporary token automatically so the user can share that instead of the CPF.</p>
           </div>
           <div className="rounded-xl bg-navy p-5">
             <div className="flex items-center gap-3">
@@ -97,12 +97,30 @@ const HowItWorks: React.FC = () => {
               </span>
               <p className="font-semibold text-white">Access History</p>
             </div>
-            <p className="mt-3 text-sm text-gray-400">This gives the user visibility into which merchants received access, what is still active, and where a token can be revoked.</p>
+            <p className="mt-3 text-sm text-gray-400">This gives the user visibility into which merchants received access, what is still active, and where access can be revoked or restored during the demo.</p>
           </div>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+      <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
+        <h3 className="text-2xl font-semibold text-white">What This Version Shows</h3>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="rounded-xl bg-navy p-4 text-sm text-gray-300">
+            <p className="font-semibold text-white">One-time onboarding</p>
+            <p className="mt-2">The user only types data in the first step.</p>
+          </div>
+          <div className="rounded-xl bg-navy p-4 text-sm text-gray-300">
+            <p className="font-semibold text-white">Selective disclosure</p>
+            <p className="mt-2">The merchant chooses which checks to request from the token.</p>
+          </div>
+          <div className="rounded-xl bg-navy p-4 text-sm text-gray-300">
+            <p className="font-semibold text-white">User control</p>
+            <p className="mt-2">The user can review the history of access and toggle access back on during the demo.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
         <h3 className="text-2xl font-semibold text-white">Visual Legend</h3>
         <div className="mt-5 flex flex-wrap gap-3">
           <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">

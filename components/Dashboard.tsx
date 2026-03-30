@@ -111,6 +111,23 @@ const Dashboard: React.FC<DashboardProps> = ({
     );
   };
 
+  const MobileNavItem = ({ icon, label, view, active }: { icon: React.ElementType, label: string, view: DashboardView, active: boolean }) => {
+    const Icon = icon;
+    return (
+      <button
+        onClick={() => {
+          setCurrentView(view);
+        }}
+        className={`flex min-w-max items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${
+          active ? 'bg-teal text-navy' : 'bg-navy-dark text-gray-300'
+        }`}
+      >
+        <Icon className="h-4 w-4" />
+        <span>{label}</span>
+      </button>
+    );
+  };
+
   const NavSection = ({ label }: { label: string }) => (
     <p className="px-4 pt-3 text-[11px] font-semibold uppercase tracking-[0.24em] text-gray-500">
       {label}
@@ -133,8 +150,38 @@ const Dashboard: React.FC<DashboardProps> = ({
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
-      <nav className="w-full md:w-64 bg-navy-dark p-4 flex flex-col flex-shrink-0">
+    <div className="min-h-screen bg-navy text-white">
+      <div className="md:hidden border-b border-white/5 bg-navy px-4 py-4">
+        <div className="rounded-2xl bg-navy-dark px-4 py-5 shadow-lg">
+          <h1 className="text-3xl font-bold text-teal">Shield Shield</h1>
+          <p className="mt-2 text-sm text-gray-400">Confidential identity sharing for the hackathon demo.</p>
+        </div>
+        <div className="mt-4 space-y-3">
+          <div className="overflow-x-auto pb-1">
+            <div className="flex gap-2">
+              <MobileNavItem icon={InformationCircleIcon} label="How It Works" view="guide" active={currentView === 'guide'} />
+              <MobileNavItem icon={UserCircleIcon} label="Link Identity" view="identity" active={currentView === 'identity'} />
+              <MobileNavItem icon={QrCodeIcon} label="Share Token" view="issue" active={currentView === 'issue'} />
+              <MobileNavItem icon={ShieldCheckIcon} label="Merchant Demo" view="validate" active={currentView === 'validate'} />
+              <MobileNavItem icon={ClockIcon} label="Access History" view="history" active={currentView === 'history'} />
+            </div>
+          </div>
+          <BlockchainStatusCard
+            status={blockchainStatus}
+            onConnectWallet={handleConnectWallet}
+            onRefreshStatus={refreshBlockchainState}
+          />
+          <button 
+            onClick={onLogout}
+            className="flex items-center justify-center w-full text-center px-4 py-3 rounded-lg bg-navy-dark text-gray-300 hover:bg-red-500 hover:text-white transition-colors"
+          >
+            <ArrowLeftOnRectangleIcon className="h-5 w-5 mr-2" />
+            <span className="font-medium">Logout</span>
+          </button>
+        </div>
+      </div>
+      <div className="min-h-screen flex flex-col md:flex-row">
+      <nav className="hidden w-full md:w-64 bg-navy-dark p-4 md:flex flex-col flex-shrink-0">
         <div className="mb-8 rounded-2xl bg-navy px-4 py-5 text-center shadow-lg">
           <h1 className="text-3xl font-bold text-teal">Shield Shield</h1>
           <p className="mt-2 text-sm text-gray-400">Confidential identity sharing for the hackathon demo.</p>
@@ -166,9 +213,10 @@ const Dashboard: React.FC<DashboardProps> = ({
           </button>
         </div>
       </nav>
-      <main className="flex-1 p-6 sm:p-8 lg:p-10 bg-navy overflow-y-auto">
+      <main className="flex-1 p-4 sm:p-6 lg:p-10 bg-navy overflow-y-auto">
         {renderView()}
       </main>
+      </div>
     </div>
   );
 };

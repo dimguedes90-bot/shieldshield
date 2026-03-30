@@ -116,7 +116,7 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
 
     if (isGenerating && !lastIssuedToken) {
         return (
-            <div className="bg-navy-dark p-8 rounded-lg shadow-lg">
+            <div className="bg-navy-dark p-6 sm:p-8 rounded-lg shadow-lg">
                 <div className="mb-4">
                     <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
                         User Flow
@@ -140,10 +140,10 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
                     </span>
                  </div>
                  <div className="grid gap-6 lg:grid-cols-[1.15fr_1fr]">
-                    <div className="rounded-2xl bg-navy-dark p-8 shadow-lg">
+                    <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
                         <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">Step 2</p>
-                        <h2 className="mt-4 text-4xl font-bold text-white">Your token is ready to share.</h2>
-                        <p className="mt-4 max-w-2xl text-lg text-gray-300">
+                        <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-white">Your token is ready to share.</h2>
+                        <p className="mt-4 max-w-2xl text-base sm:text-lg text-gray-300">
                             The user no longer needs to expose the CPF. From this point on, Shield Shield shares a temporary token and the verifier requests only the checks they need.
                         </p>
                         <div className="mt-6 flex flex-wrap gap-3 text-sm">
@@ -170,10 +170,10 @@ const IssueToken: React.FC<IssueTokenProps> = ({ isIdentityLinked, onIssueToken,
                         </div>
                     </div>
                  </div>
-                 <div className="bg-navy-dark p-8 rounded-2xl shadow-lg grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                 <div className="bg-navy-dark p-6 sm:p-8 rounded-2xl shadow-lg grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                      <div className="flex flex-col items-center justify-center">
                          <div className="p-4 bg-white rounded-lg">
-                             <QRCode value={lastIssuedToken.qrCodeDataUrl} size={256} bgColor="#FFFFFF" fgColor="#1B2A49" />
+                             <QRCode value={lastIssuedToken.qrCodeDataUrl} size={220} bgColor="#FFFFFF" fgColor="#1B2A49" />
                          </div>
                          <p className="mt-4 text-gray-400">This is what the user shares instead of the CPF.</p>
                      </div>
