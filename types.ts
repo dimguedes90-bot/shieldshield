@@ -36,6 +36,7 @@ export interface ChatMessage {
 export interface ValidationLog {
   id: string;
   token_id: string;
+  token_string?: string;
   merchant_id: string;
   merchant_label?: string;
   timestamp: number;

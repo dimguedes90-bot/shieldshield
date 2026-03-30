@@ -10,10 +10,30 @@ interface TokenHistoryProps {
 }
 
 const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onBlockchainSync }) => {
+    const [copiedTokenId, setCopiedTokenId] = React.useState<string | null>(null);
+
     const getStatus = (token: IssuedToken) => {
         if (!token.active) return { text: 'Revoked', color: 'text-yellow-400' };
         if (token.exp_ts < Date.now()) return { text: 'Expired', color: 'text-gray-400' };
         return { text: 'Active', color: 'text-green-400' };
+    };
+
+    const getValidationState = (token: IssuedToken) => {
+        if (!token.active) return { text: 'Revoked', color: 'text-yellow-400' };
+        if (token.exp_ts < Date.now()) return { text: 'Expired', color: 'text-gray-400' };
+        return { text: 'Valid', color: 'text-green-400' };
+    };
+
+    const copyToken = async (tokenId: string, value: string) => {
+        try {
+            await navigator.clipboard.writeText(value);
+            setCopiedTokenId(tokenId);
+            window.setTimeout(() => {
+                setCopiedTokenId((current) => (current === tokenId ? null : current));
+            }, 1600);
+        } catch {
+            setCopiedTokenId(null);
+        }
     };
 
     const handleRevoke = async (token: IssuedToken) => {
@@ -101,6 +121,23 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                                             <p className="mt-2 text-sm font-semibold text-white">{new Date(token.exp_ts).toLocaleString()}</p>
                                         </div>
                                     </div>
+                                    <div className="rounded-lg bg-navy-dark px-4 py-3">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="min-w-0">
+                                                <p className="text-xs uppercase tracking-[0.16em] text-gray-500">Token</p>
+                                                <p className="mt-2 truncate font-mono text-sm text-white">{token.token_string}</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    void copyToken(token.id, token.token_string);
+                                                }}
+                                                className="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white hover:text-navy"
+                                            >
+                                                {copiedTokenId === token.id ? 'Copied' : 'Copy token'}
+                                            </button>
+                                        </div>
+                                    </div>
                                     {status.text !== 'Expired' && (
                                         <button
                                             onClick={() => {
@@ -122,7 +159,8 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                                         <div className="mt-3 space-y-2">
                                             <p className="text-sm text-gray-400">Merchant ID: {token.merchant_id}</p>
                                             <p className="text-sm text-gray-400">Scope: {token.scope}</p>
-                                            <p className="text-sm text-gray-400">Token: <span className="font-mono text-xs">{token.token_string.slice(0, 22)}...</span></p>
+                                            <p className="text-sm text-gray-400">Validation state: <span className={`font-semibold ${getValidationState(token).color}`}>{getValidationState(token).text}</span></p>
+                                            <p className="text-sm text-gray-400">Token: <span className="font-mono text-xs break-all text-white">{token.token_string}</span></p>
                                         </div>
                                     </details>
                                 </div>
@@ -150,7 +188,7 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                                 <th className="p-4 font-semibold">Merchant</th>
                                 <th className="p-4 font-semibold">Purpose</th>
                                 <th className="p-4 font-semibold">Result</th>
-                                <th className="p-4 font-semibold">Token ID</th>
+                                <th className="p-4 font-semibold">Token</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -163,7 +201,26 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                                    </td>
                                    <td className="p-4 text-sm text-gray-300">{log.purpose || 'Identity verification request.'}</td>
                                    <td className={`p-4 font-semibold ${log.result === 'Valid' ? 'text-green-400' : 'text-red-400'}`}>{log.result}</td>
-                                   <td className="p-4 font-mono text-xs">{log.token_id}</td>
+                                   <td className="p-4">
+                                     {(() => {
+                                        const relatedToken = tokens.find((token) => token.id === log.token_id || token.token_string === log.token_string);
+                                        const tokenValue = log.token_string || relatedToken?.token_string || log.token_id;
+                                        return (
+                                            <div className="flex items-center gap-2">
+                                                <span className="max-w-[180px] truncate font-mono text-xs text-white">{tokenValue}</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        void copyToken(`log-${log.id}`, tokenValue);
+                                                    }}
+                                                    className="rounded bg-white/10 px-2 py-1 text-[10px] font-semibold text-white transition hover:bg-white hover:text-navy"
+                                                >
+                                                    {copiedTokenId === `log-${log.id}` ? 'Copied' : 'Copy'}
+                                                </button>
+                                            </div>
+                                        );
+                                     })()}
+                                   </td>
                                </tr>
                             )) : (
                                 <tr>

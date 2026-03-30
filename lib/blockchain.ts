@@ -83,6 +83,17 @@ type ActiveActor =
       connection: WalletConnection;
     };
 
+type PassiveReadActor =
+  | {
+      mode: 'demo' | 'mock';
+      address: string;
+    }
+  | {
+      mode: 'fhevm';
+      address: string | null;
+      provider: ethers.BrowserProvider;
+    };
+
 let fhevmInitPromise: Promise<void> | null = null;
 let fhevmInstancePromise: Promise<ReturnType<typeof createInstance>> | null = null;
 
@@ -289,6 +300,48 @@ const getActiveActorAddress = async (): Promise<ActiveActor> => {
   };
 };
 
+const getPassiveReadActor = async (): Promise<PassiveReadActor> => {
+  if (isDemoConnectionEnabled()) {
+    return {
+      mode: 'demo',
+      address: DEMO_ADDRESS,
+    };
+  }
+
+  if (!hasWallet()) {
+    return {
+      mode: 'mock',
+      address: null,
+    };
+  }
+
+  const provider = new ethers.BrowserProvider(window.ethereum);
+  const network = await provider.getNetwork();
+  const chainId = Number(network.chainId);
+
+  if (!shouldUseRealFhevm(chainId)) {
+    return {
+      mode: 'mock',
+      address: null,
+    };
+  }
+
+  let address: string | null = null;
+
+  try {
+    const accounts = await window.ethereum?.request({ method: 'eth_accounts' }) as string[] | undefined;
+    address = accounts?.[0] || null;
+  } catch {
+    address = null;
+  }
+
+  return {
+    mode: 'fhevm',
+    address,
+    provider,
+  };
+};
+
 export const connectDemoWallet = async (): Promise<BlockchainStatus> => {
   setDemoConnectionEnabled(true);
   return loadDemoStatus();
@@ -441,7 +494,7 @@ export const revokeTokenOnChain = async (tokenId: number) => {
 };
 
 export const verifyTokenOnChain = async (tokenId: number) => {
-  const actor = await getActiveActorAddress();
+  const actor = await getPassiveReadActor();
 
   if (actor.mode !== 'fhevm') {
     const store = getMockStore();
@@ -459,7 +512,7 @@ export const verifyTokenOnChain = async (tokenId: number) => {
     return { valid: false, owner: ethers.ZeroAddress, mode: actor.mode };
   }
 
-  const contract = getContract(actor.connection.provider);
+  const contract = getContract(actor.provider);
   const [valid, owner] = await contract.verifyToken(tokenId);
   return { valid, owner, mode: 'fhevm' as const };
 };

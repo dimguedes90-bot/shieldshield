@@ -60,8 +60,8 @@ const createInitialTokensData = (): IssuedToken[] => {
   return [
     {
       id: 'tok_seed_serasa',
-      token_string: 'sst_seed_serasa_credit_score',
-      qrCodeDataUrl: 'sst_seed_serasa_credit_score',
+      token_string: 'sst_b705988ef448b4bf19a39c7a52d81f0a',
+      qrCodeDataUrl: 'sst_b705988ef448b4bf19a39c7a52d81f0a',
       merchant_id: 'serasa-score',
       merchant_label: 'Serasa Score Check',
       scope: 'credit-score-check',
@@ -72,8 +72,8 @@ const createInitialTokensData = (): IssuedToken[] => {
     },
     {
       id: 'tok_seed_nubank',
-      token_string: 'sst_seed_nubank_onboarding',
-      qrCodeDataUrl: 'sst_seed_nubank_onboarding',
+      token_string: 'sst_6c912fbf79d2417ea6320cf5b74f91de',
+      qrCodeDataUrl: 'sst_6c912fbf79d2417ea6320cf5b74f91de',
       merchant_id: 'nubank-onboarding',
       merchant_label: 'Nubank Account Opening',
       scope: 'account-opening',
@@ -84,8 +84,8 @@ const createInitialTokensData = (): IssuedToken[] => {
     },
     {
       id: 'tok_seed_ifood',
-      token_string: 'sst_seed_ifood_driver',
-      qrCodeDataUrl: 'sst_seed_ifood_driver',
+      token_string: 'sst_91a0d8cf34e2462ea7f5bb6d2c40e183',
+      qrCodeDataUrl: 'sst_91a0d8cf34e2462ea7f5bb6d2c40e183',
       merchant_id: 'ifood-rider',
       merchant_label: 'iFood Rider Registration',
       scope: 'worker-verification',
@@ -96,8 +96,8 @@ const createInitialTokensData = (): IssuedToken[] => {
     },
     {
       id: 'tok_seed_vivo',
-      token_string: 'sst_seed_vivo_plan',
-      qrCodeDataUrl: 'sst_seed_vivo_plan',
+      token_string: 'sst_2fd93ab4c6824f1c8be01975de3a44c7',
+      qrCodeDataUrl: 'sst_2fd93ab4c6824f1c8be01975de3a44c7',
       merchant_id: 'vivo-planos',
       merchant_label: 'Vivo Mobile Plan',
       scope: 'telecom-risk-check',
@@ -116,6 +116,7 @@ const createInitialValidationLogs = (): ValidationLog[] => {
     {
       id: 'log_seed_serasa',
       token_id: 'tok_seed_serasa',
+      token_string: 'sst_b705988ef448b4bf19a39c7a52d81f0a',
       merchant_id: 'serasa-score',
       merchant_label: 'Serasa Score Check',
       timestamp: now - 1000 * 60 * 55,
@@ -125,6 +126,7 @@ const createInitialValidationLogs = (): ValidationLog[] => {
     {
       id: 'log_seed_nubank',
       token_id: 'tok_seed_nubank',
+      token_string: 'sst_6c912fbf79d2417ea6320cf5b74f91de',
       merchant_id: 'nubank-onboarding',
       merchant_label: 'Nubank Account Opening',
       timestamp: now - 1000 * 60 * 25,
@@ -134,6 +136,7 @@ const createInitialValidationLogs = (): ValidationLog[] => {
     {
       id: 'log_seed_ifood',
       token_id: 'tok_seed_ifood',
+      token_string: 'sst_91a0d8cf34e2462ea7f5bb6d2c40e183',
       merchant_id: 'ifood-rider',
       merchant_label: 'iFood Rider Registration',
       timestamp: now - 1000 * 60 * 15,
@@ -143,6 +146,7 @@ const createInitialValidationLogs = (): ValidationLog[] => {
     {
       id: 'log_seed_vivo',
       token_id: 'tok_seed_vivo',
+      token_string: 'sst_2fd93ab4c6824f1c8be01975de3a44c7',
       merchant_id: 'vivo-planos',
       merchant_label: 'Vivo Mobile Plan',
       timestamp: now - 1000 * 60 * 5,

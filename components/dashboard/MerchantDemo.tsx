@@ -232,6 +232,7 @@ const MerchantDemo: React.FC<MerchantDemoProps> = ({ tokens, profiles, onAddLog,
         const newLog: ValidationLog = {
             id: `log_${Date.now()}`,
             token_id: foundToken?.id || 'N/A',
+            token_string: foundToken?.token_string,
             merchant_id: merchantId,
             merchant_label: foundToken?.merchant_label,
             timestamp: Date.now(),

@@ -3,34 +3,19 @@ import React from 'react';
 const HowItWorks: React.FC = () => {
   return (
     <div className="space-y-8">
-      <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
-        <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
-              Product Overview
-            </span>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-300">
-              In-app guide
-            </span>
-          </div>
-          <h2 className="mt-5 text-3xl sm:text-4xl font-bold text-teal">How Shield Shield Works</h2>
-          <p className="mt-4 max-w-3xl text-lg text-gray-300">
-            Shield Shield protects Brazil&apos;s tax identifier (CPF) by registering identity once, storing it in a confidential on-chain layer powered by Zama fhEVM, and sharing temporary tokens instead of the raw identifier.
-          </p>
+      <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
+            Product Overview
+          </span>
+          <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-300">
+            In-app guide
+          </span>
         </div>
-        <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">The pitch in one sentence</p>
-          <div className="mt-5 space-y-4 text-sm text-gray-300">
-            <div className="rounded-xl bg-navy p-4">
-              <p className="font-semibold text-white">Problem</p>
-              <p className="mt-2">Brazil&apos;s tax identifier (CPF) is overshared and constantly exposed across onboarding, credit checks, and age-restricted purchases.</p>
-            </div>
-            <div className="rounded-xl bg-navy p-4">
-              <p className="font-semibold text-white">Solution</p>
-              <p className="mt-2">Register the identity once, then share a temporary token while verifiers request only the claims they need.</p>
-            </div>
-          </div>
-        </div>
+        <h2 className="mt-5 text-3xl sm:text-4xl font-bold text-teal">How Shield Shield Works</h2>
+        <p className="mt-4 max-w-4xl text-lg text-gray-300">
+          Shield Shield protects Brazil&apos;s tax identifier (CPF) by registering identity once, storing it in a confidential on-chain layer powered by Zama fhEVM, and sharing temporary tokens instead of the raw identifier.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
