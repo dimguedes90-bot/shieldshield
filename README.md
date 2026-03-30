@@ -1,14 +1,28 @@
-# Shield Shield 🛡️
+# Shield Shield
+
+Your identity, encrypted. Share proof, not data.
 
 Confidential On-Chain Identity powered by Zama's fhEVM
 
+## Demo
+
+- Live app: https://shieldshield.vercel.app
+- Video walkthrough: https://github.com/dimguedes90-bot/shieldshield
+
 ## Problem
 
-In Brazil, the CPF (national ID) is requested everywhere and leaked constantly. People are forced to share raw personal data with entities they don't trust.
+In Brazil, the CPF (national ID) is requested everywhere and leaked constantly. In 2021, 223 million CPF records were leaked — effectively the entire Brazilian population. People are forced to share raw personal data with entities they don't trust.
 
 ## Solution
 
 Shield Shield encrypts identity data using Fully Homomorphic Encryption and stores it on-chain. Users share temporary tokens instead of real IDs, and can prove attributes like being over 18 without revealing the underlying CPF or birth year.
+
+## How It Works (User Flow)
+
+1. User registers CPF -> encrypted with FHE and stored on-chain
+2. User generates a temporary token -> shareable via QR or alphanumeric code
+3. Verifier scans token -> requests only the claims they need (age, identity validity)
+4. User reviews access history -> can revoke tokens at any time
 
 ## Sponsor Integration
 
@@ -19,9 +33,13 @@ Zama (fhEVM) powers the confidential blockchain layer:
 - age proofs run as encrypted comparisons on-chain
 - the frontend uses Zama's Relayer SDK and falls back to a mock blockchain mode for local demos when a live deployment is unavailable
 
-## Track
+## Hackathon Context
 
-Web3 & Digital Human Rights
+- Hackathon: PL_Genesis: Frontiers of Collaboration (Protocol Labs)
+- Track: Web3 & Digital Human Rights
+- Sponsor bounty: Zama (fhEVM)
+- Category: Existing Code
+- Team: solo builder
 
 ## What The App Does
 
