@@ -280,7 +280,13 @@ const App: React.FC = () => {
   };
 
   const handleRevokeToken = (tokenId: string) => {
-    setIssuedTokens(tokens => tokens.map(t => (t.id === tokenId ? { ...t, active: false } : t)));
+    setIssuedTokens(tokens =>
+      tokens.map(t =>
+        t.id === tokenId
+          ? { ...t, active: t.exp_ts < Date.now() ? t.active : !t.active }
+          : t,
+      ),
+    );
   };
 
   const handleAddLog = (log: ValidationLog) => {

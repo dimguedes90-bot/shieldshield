@@ -97,14 +97,18 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                                         <p className="text-sm text-gray-400">Token: <span className="font-mono text-xs">{token.token_string.slice(0, 22)}...</span></p>
                                         <p className="text-sm text-gray-400">Expires: {new Date(token.exp_ts).toLocaleString()}</p>
                                     </div>
-                                    {status.text === 'Active' && (
+                                    {status.text !== 'Expired' && (
                                         <button
                                             onClick={() => {
                                                 void handleRevoke(token);
                                             }}
-                                            className="rounded-lg bg-red-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-600"
+                                            className={`rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors ${
+                                                status.text === 'Active'
+                                                    ? 'bg-red-500 hover:bg-red-600'
+                                                    : 'bg-teal hover:bg-white hover:text-navy'
+                                            }`}
                                         >
-                                            Revoke Access
+                                            {status.text === 'Active' ? 'Revoke Access' : 'Restore Access'}
                                         </button>
                                     )}
                                 </div>
