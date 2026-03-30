@@ -7,7 +7,7 @@ const HowItWorks: React.FC = () => {
         <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full bg-teal/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-teal">
-              Hackathon Overview
+              Product Overview
             </span>
             <span className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-gray-300">
               In-app guide
@@ -15,7 +15,7 @@ const HowItWorks: React.FC = () => {
           </div>
           <h2 className="mt-5 text-3xl sm:text-4xl font-bold text-teal">How Shield Shield Works</h2>
           <p className="mt-4 max-w-3xl text-lg text-gray-300">
-            Shield Shield protects Brazil&apos;s CPF by registering identity once, storing it in a confidential on-chain layer powered by Zama fhEVM, and sharing temporary tokens instead of the raw identifier.
+            Shield Shield protects Brazil&apos;s tax identifier (CPF) by registering identity once, storing it in a confidential on-chain layer powered by Zama fhEVM, and sharing temporary tokens instead of the raw identifier.
           </p>
         </div>
         <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
@@ -23,7 +23,7 @@ const HowItWorks: React.FC = () => {
           <div className="mt-5 space-y-4 text-sm text-gray-300">
             <div className="rounded-xl bg-navy p-4">
               <p className="font-semibold text-white">Problem</p>
-              <p className="mt-2">CPF is overshared and constantly exposed across onboarding, credit checks, and age-restricted purchases.</p>
+              <p className="mt-2">Brazil&apos;s tax identifier (CPF) is overshared and constantly exposed across onboarding, credit checks, and age-restricted purchases.</p>
             </div>
             <div className="rounded-xl bg-navy p-4">
               <p className="font-semibold text-white">Solution</p>
@@ -39,7 +39,7 @@ const HowItWorks: React.FC = () => {
             Problem
           </span>
           <p className="mt-4 text-gray-300">
-            CPF is requested constantly and overshared. Once leaked, the user loses control over who can verify or reuse that identity.
+            The CPF, Brazil&apos;s tax identifier, is requested constantly and overshared. Once leaked, the user loses control over who can verify or reuse that identity.
           </p>
         </div>
         <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
@@ -47,7 +47,7 @@ const HowItWorks: React.FC = () => {
             Solution
           </span>
           <p className="mt-4 text-gray-300">
-            Register the identity confidentially, create a temporary shareable token automatically, and let merchants validate attributes without seeing the underlying CPF.
+            Register the identity confidentially, create a temporary shareable token automatically, and let merchants validate attributes without seeing the underlying tax identifier.
           </p>
         </div>
         <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
@@ -79,7 +79,7 @@ const HowItWorks: React.FC = () => {
               </span>
               <p className="font-semibold text-white">Share Token</p>
             </div>
-            <p className="mt-3 text-sm text-gray-400">After registration, Shield Shield prepares a temporary token automatically so the user can share that instead of the CPF.</p>
+            <p className="mt-3 text-sm text-gray-400">After registration, Shield Shield prepares a temporary token automatically so the user can share that instead of the CPF itself.</p>
           </div>
           <div className="rounded-xl bg-navy p-5">
             <div className="flex items-center gap-3">
@@ -88,7 +88,7 @@ const HowItWorks: React.FC = () => {
               </span>
               <p className="font-semibold text-white">Merchant Demo</p>
             </div>
-            <p className="mt-3 text-sm text-gray-400">This simulates the verifier side: a merchant receives the token, chooses the claims they need, and validates those checks without seeing the raw CPF.</p>
+            <p className="mt-3 text-sm text-gray-400">This simulates the verifier side: a merchant receives the token, chooses the claims they need, and validates those checks without seeing the raw tax identifier.</p>
           </div>
           <div className="rounded-xl bg-navy p-5">
             <div className="flex items-center gap-3">
@@ -98,24 +98,6 @@ const HowItWorks: React.FC = () => {
               <p className="font-semibold text-white">Access History</p>
             </div>
             <p className="mt-3 text-sm text-gray-400">This gives the user visibility into which merchants received access, what is still active, and where access can be revoked or restored during the demo.</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl bg-navy-dark p-6 sm:p-8 shadow-lg">
-        <h3 className="text-2xl font-semibold text-white">What This Version Shows</h3>
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl bg-navy p-4 text-sm text-gray-300">
-            <p className="font-semibold text-white">One-time onboarding</p>
-            <p className="mt-2">The user only types data in the first step.</p>
-          </div>
-          <div className="rounded-xl bg-navy p-4 text-sm text-gray-300">
-            <p className="font-semibold text-white">Selective disclosure</p>
-            <p className="mt-2">The merchant chooses which checks to request from the token.</p>
-          </div>
-          <div className="rounded-xl bg-navy p-4 text-sm text-gray-300">
-            <p className="font-semibold text-white">User control</p>
-            <p className="mt-2">The user can review the history of access and toggle access back on during the demo.</p>
           </div>
         </div>
       </div>
@@ -131,7 +113,7 @@ const HowItWorks: React.FC = () => {
           </span>
         </div>
         <p className="mt-4 text-sm text-gray-400">
-          These labels are intentionally subtle. They help the jury understand which screens belong to the user journey and which screen represents the verifier side of the flow.
+          These labels quietly separate the end-user journey from the verifier side, so each screen is easier to understand at a glance.
         </p>
       </div>
     </div>

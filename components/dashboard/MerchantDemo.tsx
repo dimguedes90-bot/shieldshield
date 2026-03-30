@@ -302,7 +302,7 @@ const MerchantDemo: React.FC<MerchantDemoProps> = ({ tokens, profiles, onAddLog,
                                     </option>
                                 ))}
                             </select>
-                            <p className="mt-2 text-sm text-gray-400">For the hackathon demo, the verifier chooses a scenario and requests the checks they need from the same token.</p>
+                            <p className="mt-2 text-sm text-gray-400">Choose the verifier scenario, then request only the checks needed for that moment.</p>
                         </div>
                         <div>
                             <label className="block text-gray-300 mb-3">Choose what the merchant wants to verify</label>

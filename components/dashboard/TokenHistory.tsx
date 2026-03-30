@@ -75,8 +75,8 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
 
             <div className="mb-10 rounded-2xl bg-navy-dark p-6 shadow-lg">
                 <div className="mb-6">
-                    <h3 className="text-2xl font-semibold text-white">Your Shared Access</h3>
-                    <p className="mt-2 text-gray-400">Each card below represents one active, expired, or revoked sharing session created from the user identity.</p>
+                    <h3 className="text-2xl font-semibold text-white">Shared Tokens</h3>
+                    <p className="mt-2 text-gray-400">This is the user-facing list of tokens that were created from the identity. The most important controls stay visible, and the rest can be expanded when needed.</p>
                 </div>
                 <div className="grid gap-4 lg:grid-cols-2">
                     {tokens.length > 0 ? tokens.map(token => {
@@ -91,11 +91,15 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                                         </div>
                                         <span className={`rounded-full bg-navy-dark px-3 py-1 text-sm font-semibold ${status.color}`}>{status.text}</span>
                                     </div>
-                                    <div className="space-y-2">
-                                        <p className="text-sm text-gray-400">Merchant ID: {token.merchant_id}</p>
-                                        <p className="text-sm text-gray-400">Scope: {token.scope}</p>
-                                        <p className="text-sm text-gray-400">Token: <span className="font-mono text-xs">{token.token_string.slice(0, 22)}...</span></p>
-                                        <p className="text-sm text-gray-400">Expires: {new Date(token.exp_ts).toLocaleString()}</p>
+                                    <div className="grid gap-3 sm:grid-cols-2">
+                                        <div className="rounded-lg bg-navy-dark px-4 py-3">
+                                            <p className="text-xs uppercase tracking-[0.16em] text-gray-500">Status</p>
+                                            <p className={`mt-2 text-sm font-semibold ${status.color}`}>{status.text}</p>
+                                        </div>
+                                        <div className="rounded-lg bg-navy-dark px-4 py-3">
+                                            <p className="text-xs uppercase tracking-[0.16em] text-gray-500">Expiry</p>
+                                            <p className="mt-2 text-sm font-semibold text-white">{new Date(token.exp_ts).toLocaleString()}</p>
+                                        </div>
                                     </div>
                                     {status.text !== 'Expired' && (
                                         <button
@@ -111,6 +115,16 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
                                             {status.text === 'Active' ? 'Revoke Access' : 'Restore Access'}
                                         </button>
                                     )}
+                                    <details className="rounded-lg bg-navy-dark px-4 py-3 text-sm text-gray-300">
+                                        <summary className="cursor-pointer list-none font-semibold text-white">
+                                            View details
+                                        </summary>
+                                        <div className="mt-3 space-y-2">
+                                            <p className="text-sm text-gray-400">Merchant ID: {token.merchant_id}</p>
+                                            <p className="text-sm text-gray-400">Scope: {token.scope}</p>
+                                            <p className="text-sm text-gray-400">Token: <span className="font-mono text-xs">{token.token_string.slice(0, 22)}...</span></p>
+                                        </div>
+                                    </details>
                                 </div>
                             </div>
                         );
@@ -124,8 +138,8 @@ const TokenHistory: React.FC<TokenHistoryProps> = ({ tokens, logs, onRevoke, onB
 
             <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
                 <div className="mb-6">
-                    <h3 className="text-2xl font-semibold text-white">Verification Timeline</h3>
-                    <p className="mt-2 text-gray-400">This timeline helps the user understand when organizations tried to validate a token and what kind of check they requested.</p>
+                    <h3 className="text-2xl font-semibold text-white">Merchant Activity</h3>
+                    <p className="mt-2 text-gray-400">This section updates when a merchant actually tries to use a token. Creating a new share above does not add an activity entry until someone validates it.</p>
                 </div>
             <div className="bg-navy rounded-xl overflow-hidden">
                 <div className="overflow-x-auto">

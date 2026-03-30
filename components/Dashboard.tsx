@@ -74,10 +74,6 @@ const Dashboard: React.FC<DashboardProps> = ({
     };
   }, [identityLinked]);
 
-  useEffect(() => {
-    void refreshBlockchainState();
-  }, []);
-
   const refreshBlockchainState = async () => {
     const status = await getBlockchainStatus();
     setBlockchainStatus((prev) => ({
@@ -154,7 +150,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       <div className="md:hidden border-b border-white/5 bg-navy px-4 py-4">
         <div className="rounded-2xl bg-navy-dark px-4 py-5 shadow-lg">
           <h1 className="text-3xl font-bold text-teal">Shield Shield</h1>
-          <p className="mt-2 text-sm text-gray-400">Confidential identity sharing for the hackathon demo.</p>
+          <p className="mt-2 text-sm text-gray-400">Confidential identity sharing powered by selective disclosure.</p>
         </div>
         <div className="mt-4 space-y-3">
           <div className="overflow-x-auto pb-1">
@@ -166,11 +162,6 @@ const Dashboard: React.FC<DashboardProps> = ({
               <MobileNavItem icon={ClockIcon} label="Access History" view="history" active={currentView === 'history'} />
             </div>
           </div>
-          <BlockchainStatusCard
-            status={blockchainStatus}
-            onConnectWallet={handleConnectWallet}
-            onRefreshStatus={refreshBlockchainState}
-          />
           <button 
             onClick={onLogout}
             className="flex items-center justify-center w-full text-center px-4 py-3 rounded-lg bg-navy-dark text-gray-300 hover:bg-red-500 hover:text-white transition-colors"
@@ -184,7 +175,7 @@ const Dashboard: React.FC<DashboardProps> = ({
       <nav className="hidden w-full md:w-64 bg-navy-dark p-4 md:flex flex-col flex-shrink-0">
         <div className="mb-8 rounded-2xl bg-navy px-4 py-5 text-center shadow-lg">
           <h1 className="text-3xl font-bold text-teal">Shield Shield</h1>
-          <p className="mt-2 text-sm text-gray-400">Confidential identity sharing for the hackathon demo.</p>
+          <p className="mt-2 text-sm text-gray-400">Confidential identity sharing powered by selective disclosure.</p>
         </div>
         <div className="flex-grow space-y-2">
           <NavSection label="Overview" />
@@ -199,11 +190,6 @@ const Dashboard: React.FC<DashboardProps> = ({
           <NavItem icon={ShieldCheckIcon} label="3. Merchant Demo" view="validate" active={currentView === 'validate'} />
         </div>
         <div className="space-y-3">
-          <BlockchainStatusCard
-            status={blockchainStatus}
-            onConnectWallet={handleConnectWallet}
-            onRefreshStatus={refreshBlockchainState}
-          />
           <button 
             onClick={onLogout}
             className="flex items-center w-full text-left px-4 py-3 rounded-lg text-gray-300 hover:bg-red-500 hover:text-white transition-colors"
@@ -214,6 +200,13 @@ const Dashboard: React.FC<DashboardProps> = ({
         </div>
       </nav>
       <main className="flex-1 p-4 sm:p-6 lg:p-10 bg-navy overflow-y-auto">
+        <div className="mb-6">
+          <BlockchainStatusCard
+            status={blockchainStatus}
+            onConnectWallet={handleConnectWallet}
+            isIdentityLinked={identityLinked}
+          />
+        </div>
         {renderView()}
       </main>
       </div>

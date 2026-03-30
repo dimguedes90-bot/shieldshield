@@ -131,6 +131,15 @@ const getConnection = async (): Promise<WalletConnection> => {
     throw new Error('MetaMask is required to use the blockchain layer.');
   }
 
+  try {
+    await window.ethereum.request({
+      method: 'wallet_requestPermissions',
+      params: [{ eth_accounts: {} }],
+    });
+  } catch {
+    // Some wallets may ignore this method or the user may have already granted access.
+  }
+
   await window.ethereum.request({ method: 'eth_requestAccounts' });
   const provider = new ethers.BrowserProvider(window.ethereum);
   const signer = await provider.getSigner();

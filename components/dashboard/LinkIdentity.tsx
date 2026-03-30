@@ -93,9 +93,22 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
       onLink();
       await onBlockchainSync();
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to register the identity on-chain.';
+
+      if (errorMessage.toLowerCase().includes('already registered')) {
+        persistIdentitySummary(blockchainStatus.mode === 'demo' ? 'demo' : blockchainStatus.mode === 'fhevm' ? 'fhevm' : 'mock', fullName, dob, cpf, birthYear);
+        setValidationStatus({
+          isValid: true,
+          message: 'This wallet already had an identity linked. Shield Shield synced that protected identity into the current session.',
+        });
+        onLink();
+        await onBlockchainSync();
+        return;
+      }
+
       setValidationStatus({
         isValid: false,
-        message: error instanceof Error ? error.message : 'Failed to register the identity on-chain.',
+        message: errorMessage,
       });
     } finally {
       setIsSubmitting(false);
@@ -151,7 +164,7 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
           <CheckCircleIcon className="h-16 w-16 text-green-400 mx-auto mb-4" />
           <h2 className="text-3xl sm:text-4xl font-bold mb-2 text-center">Identity Linked On-Chain</h2>
           <p className="mx-auto max-w-3xl text-center text-gray-300">
-            Your CPF and birth year are now protected inside the Shield Shield confidentiality layer powered by Zama fhEVM.
+            Your tax identifier (CPF) and birth year are now protected inside the Shield Shield confidentiality layer powered by Zama fhEVM.
           </p>
         </div>
         {identitySummary && (
@@ -208,7 +221,7 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-teal">Step 1</p>
                 <h2 className="mt-4 text-3xl sm:text-4xl font-bold text-white">Link your identity once.</h2>
                 <p className="mt-4 max-w-2xl text-base sm:text-lg text-gray-300">
-                  Shield Shield turns a one-time CPF registration into a confidential identity layer, so the user can share tokens later instead of repeating the raw number everywhere.
+                  Shield Shield turns a one-time tax identifier (CPF) registration into a confidential identity layer, so the user can share tokens later instead of repeating the raw number everywhere.
                 </p>
             </div>
             <div className="rounded-2xl bg-navy-dark p-6 shadow-lg">
@@ -216,7 +229,7 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
                 <div className="mt-5 space-y-4 text-sm text-gray-300">
                     <div className="rounded-xl bg-navy p-4">
                         <p className="font-semibold text-white">Single registration</p>
-                        <p className="mt-2">The user enters identity data only once for the demo flow.</p>
+                        <p className="mt-2">The user enters identity data once, then reuses tokens instead of repeating the raw CPF.</p>
                     </div>
                     <div className="rounded-xl bg-navy p-4">
                         <p className="font-semibold text-white">No raw CPF sharing later</p>
@@ -224,7 +237,7 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
                     </div>
                     <div className="rounded-xl bg-navy p-4">
                         <p className="font-semibold text-white">Live or fallback mode</p>
-                        <p className="mt-2">You can demo the flow with MetaMask or trigger a fee-free fallback when needed.</p>
+                        <p className="mt-2">The flow can run with a live wallet connection or a fee-free fallback if wallet approval is unavailable.</p>
                     </div>
                 </div>
             </div>
@@ -232,11 +245,11 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
         <div className="bg-navy-dark p-6 sm:p-8 rounded-2xl shadow-lg">
             <div className="mb-6 rounded-xl bg-navy px-5 py-4 text-sm text-gray-300">
                 <p className="font-semibold text-white">Confidential identity registration</p>
-                <p className="mt-2">For the hackathon demo we keep this simple: validate the CPF locally, derive the birth year, and register the identity in the confidential blockchain layer powered by Zama fhEVM.</p>
+                <p className="mt-2">Validate the tax identifier (CPF) locally, derive the birth year, and register the identity in the confidential blockchain layer powered by Zama fhEVM.</p>
             </div>
             <div className="mb-6 rounded-xl border border-yellow-500/20 bg-yellow-500/10 px-5 py-4 text-sm text-yellow-100">
-                <p className="font-semibold text-white">No MetaMask? Use the demo path</p>
-                <p className="mt-2">If the live wallet flow is slow or unavailable during the presentation, use this fallback to simulate the same identity-link step without gas fees.</p>
+                <p className="font-semibold text-white">Alternative demo path</p>
+                <p className="mt-2">If MetaMask is unavailable, use this fallback to simulate the same identity-link step without gas fees.</p>
                 <div className="mt-4 flex flex-wrap items-center gap-3">
                     <button
                         type="button"
@@ -263,13 +276,13 @@ const LinkIdentity: React.FC<LinkIdentityProps> = ({ isLinked, blockchainStatus,
                     <input type="date" id="dob" value={dob} onChange={e => setDob(e.target.value)} className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" />
                 </div>
                 <div>
-                    <label className="block text-gray-300 mb-2" htmlFor="cpf">CPF</label>
+                    <label className="block text-gray-300 mb-2" htmlFor="cpf">Tax Identifier (CPF)</label>
                     <input type="text" id="cpf" value={cpf} onChange={e => setCpf(e.target.value)} placeholder="e.g., 123.456.789-00" className="w-full p-3 bg-navy-light rounded-lg focus:outline-none focus:ring-2 focus:ring-teal" required />
                 </div>
                 <div className="grid gap-4 md:grid-cols-3">
                     <div className="rounded-xl border border-white/10 bg-navy px-5 py-4 text-sm text-gray-300">
                         <p className="font-semibold text-white">Checks locally</p>
-                        <p className="mt-2">The demo only requires 11 digits for the CPF, keeping onboarding fast for the presentation.</p>
+                        <p className="mt-2">This version only checks for 11 digits, keeping identity onboarding fast and simple.</p>
                     </div>
                     <div className="rounded-xl border border-white/10 bg-navy px-5 py-4 text-sm text-gray-300">
                         <p className="font-semibold text-white">Protects on-chain</p>

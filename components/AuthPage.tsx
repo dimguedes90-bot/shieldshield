@@ -92,7 +92,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onEnterDemo }) => {
 
         <div className="mb-6 rounded-lg border border-teal/25 bg-teal/10 p-4">
           <p className="text-sm text-gray-200">
-            Demo mode is enabled for fast testing. You can enter any information and go straight into the product flow.
+            Skip authentication and go straight into the product flow.
           </p>
           <button
             type="button"
@@ -174,7 +174,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onEnterDemo }) => {
             </div>
           )}
           <p className="mb-4 text-xs text-gray-500">
-            Auth remains available below, but demo reviewers can skip it using the button above.
+            Authentication remains available below if you want to test the full sign-in flow.
           </p>
           <button
             type="submit"
